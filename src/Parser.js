@@ -91,7 +91,7 @@ Parser.prototype.parse = function(param) {
         ++this.idx;
     }
 
-    return this.parsed.join('');
+    return this.parsed.join('').replace(/^[\n\s]+|[\n\s]+$/, '');
 
 };
 
