@@ -1,15 +1,9 @@
-{{if num == 1 && num < 3}}
-num condition
-{{else if piyo}}
-piyo exists
-{{else if huga}}
-huga exists
-{{else}}
-else section
-{{/if}}
-
+{{if loopable}}
 {{loop section}}
-    {{if hogehoge}}
-    hugahuga
+    {{num}}
+    {{if num > 1}}
+    {{hogehoge}}
     {{/if}}
 {{/loop}}
+{{/if}}
+

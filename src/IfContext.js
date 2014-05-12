@@ -11,12 +11,22 @@ IfContext.make = function(condition, context) {
 
 IfContext.prototype.analyze = function(context) {
     var ret      = [],
-        contexts = context.split(/\{\{else(?:\s?if\s?)?([\s\S]+?)?\}\}/),
         i        = 0,
+        regex    = /\{\{else(?:\s?if\s?)?([\s\S]+?)?\}\}/,
+        contexts,
         size;
 
+    if ( ! regex.test(context) ) {
+        ret.push({
+            condition: this.condition,
+            context  : context
+        });
+        return ret;
+    }
+
+    contexts = context.split();
     ret.push({
-        condition: this.cond,
+        condition: this.condition,
         context  : contexts.shift().replace(/^\n/, '')
     });
 

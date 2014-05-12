@@ -8,9 +8,9 @@ function Parser(template) {
     this.leftDelimiter  = '{{';
     this.rightDelimiter = '}}';
     this.processTree = [];
-    this.currentParam = {};
     this.parsed = [];
     this.line = 0;
+    this.nestLevel = 0;
 }
 
 Parser.make = function(template) {
@@ -31,13 +31,12 @@ Parser.prototype.parse = function(param) {
         c,
         cc = "";
 
-    this.currentParam = param;
+    this.param = param;
 
     while ( this.idx <= this.size ) {
         c = this.tpl[this.idx];
 
         if ( c + this.tpl[this.idx + 1] === this.leftDelimiter ) {
-            console.log('Left Delimiter start');
             this.mode = Parser.STATUS_PARSING;
             this.parsed.pop();
             stack = this.leftDelimiter;
@@ -49,18 +48,27 @@ Parser.prototype.parse = function(param) {
                 throw new Error('Unexpexted right delimiter chars: ' + this.rightDelimiter + ' at line ' + this.line);
             }
             stack += this.rightDelimiter;
+
             m = regex.exec(stack);
             if ( ! m[1] ) {
                 tmp = this.openProcess(m[2]);
-                console.log(m[2], tmp);
-                if ( tmp === false ) {
-                    parse += this.leftDelimiter + m[2] + this.rightDelimiter;
-                } else if ( tmp !== "" ) {
-                    this.parsed[this.parsed.length] = tmp;
+                if ( this.nestLevel < 2 ) {
+                    if ( tmp === false ) {
+                        parse += stack;
+                    } else if ( tmp !== "" ) {
+                        this.parsed[this.parsed.length] = tmp;
+                    }
+                } else {
+                    parse += stack;
                 }
             } else {
-                this.parsed[this.parsed.length] = this.closeProcess(m[2], parse, param);
-                parse = "";
+                tmp = this.closeProcess(m[2], parse);
+                if ( this.nestLevel < 1 ) {
+                    this.parsed[this.parsed.length] = tmp;
+                    parse = "";
+                } else {
+                    parse += stack;
+                }
             }
             stack = "";
             this.idx++;
@@ -92,30 +100,39 @@ Parser.prototype.openProcess = function(mode) {
 
     if ( /^if\s/.test(mode) ) {
         this.mode = Parser.STATUS_IF;
-        this.processTree.push({
-            mode: this.mode,
-            condition: mode.replace(/^if\s(.+?)$/, '$1')
-        });
+        if ( this.nestLevel === 0 ) {
+            this.processTree.push({
+                mode: this.mode,
+                condition: mode.replace(/^if\s(.+?)$/, '$1')
+            });
+        }
+        this.nestLevel++;
     } else if ( /^else/.test(mode) ) {
         val = false;
         this.mode = Parser.STATUS_IF;
     } else if ( /^loop/.test(mode) ) {
-        this.mode = Parser.STATUS_LOOP;
-        this.processTree.push({
-            mode: this.mode,
-            condition: mode.replace(/^loop\s(.+?)$/, '$1')
-        });
-        this.currentParam =
+        if ( this.nestLevel === 0 ) {
+            this.mode = Parser.STATUS_LOOP;
+            this.processTree.push({
+                mode: this.mode,
+                condition: mode.replace(/^loop\s(.+?)$/, '$1')
+            });
+        }
+        this.nestLevel++;
     } else {
-        val = this.getRecursiveValue(mode, this.param);
-        this.mode = Parser.STATUS_NORMAL;
+        if ( this.nestLevel === 0 ) {
+            val = this.getRecursiveValue(mode, this.param);
+            this.mode = Parser.STATUS_NORMAL;
+        } else {
+            val = false;
+        }
     }
 
     return val;
 };
 
 Parser.prototype.closeProcess = function(mode, context) {
-    var proc = this.processTree.pop(),
+    var proc,
         parser,
         list,
         size,
@@ -123,27 +140,32 @@ Parser.prototype.closeProcess = function(mode, context) {
         i = 0,
         piece = '';
 
+    this.nestLevel--;
+
     switch ( mode ) {
         case 'if':
-            if ( proc.mode !== Parser.STATUS_IF ) {
-                throw new Error('Syntax Error: IF Compare section is not matched. at line ' + this.line);
+            if ( this.nestLevel === 0 ) {
+                proc = this.processTree.pop();
+                parser = new IfContext(proc.condition, context);
+                piece = parser.exec(this.param);
+                piece = Parser.make(piece).parse(this.param);
+            } else {
+                piece = context;
             }
-            parser = new IfContext(proc.condition, context);
-            piece = parser.exec(param);
             break;
 
         case 'loop':
-            if ( proc.mode !== Parser.STATUS_LOOP ) {
-                throw new Error('Syntax Error: Compare section is not matched. at line ' + this.line);
+            if ( this.nestLevel === 0 ) {
+                proc = this.processTree.pop();
+                list = this.getRecursiveValue(proc.condition, this.param) || [];
+                size = list.length;
+                for ( ; i < size; ++i ) {
+                    stack[stack.length] = Parser.make(context).parse(list[i] || {}).replace(/^[\n\s]+|[\n\s]+$/, '');
+                }
+                piece = stack.join('\n');
+            } else {
+                piece = context;
             }
-            list = this.getRecursiveValue(proc.condition, param) || [];
-            size = list.length;
-            for ( ; i < size; ++i ) {
-                console.log(context, list[i]);
-                stack[stack.length] = Parser.make(context).parse(list[i] || {});
-            }
-
-            piece = stack.join('\n');
             break;
     }
 
