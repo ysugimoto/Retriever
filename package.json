@@ -1,6 +1,6 @@
 {
   "name": "Retriever",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A simple / lightweight JavaScript template engine",
   "main": "build/retriever.js",
   "directories": {
