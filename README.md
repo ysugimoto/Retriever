@@ -85,6 +85,8 @@ var result = Retriever.make(template).parse(bind);
 
 ### loop
 
+When `Array<Object>` loop, index can access:
+
 ```
 var template = "{{loop section}}{{value}}{{/loop}}"
 var bind     = {
@@ -96,6 +98,26 @@ var bind     = {
 };
 
 // will returns 'foobarbaz'
+var result = Retriever.make(template).parse(bind);
+```
+
+When `Array<Number|String|Booelan>` loop,  index can access through `@data` index:
+
+```
+var template = "{{loop list}}{{@data}}{{/loop}}"
+var bind     = { list: [1, 2, 3, 4, 5, 6] };
+
+// will returns '123456'
+var result = Retriever.make(template).parse(bind);
+```
+
+In the above case, It can access parent Object through `@parent` index:
+
+```
+var template = "{{loop list}}{{@data}}{{@parent.foo}}{{/loop}}"
+var bind     = { foo: 'bar', list: [1, 2, 3, 4, 5, 6] };
+
+// will returns '1bar2bar3bar4bar5bar6bar'
 var result = Retriever.make(template).parse(bind);
 ```
 

@@ -25,6 +25,16 @@ describe('Parser class testcase', function() {
         expect(p.parse({section: [{data:'a'},{data:'b'}]})).to.be.a('string').and.eql('ab');
     });
 
+    it('parse loop when parameter is an array', function() {
+        expect(Parser.make('{{loop list}}{{@data}}{{/loop}}').parse({list: [1,2,3]})).to.be.a('string')
+            .and.eql('123');
+    });
+
+    it('access to parent parameter object in loop process', function() {
+        expect(Parser.make('{{loop list}}{{@data}}{{@parent.foo}}{{/loop}}').parse({foo: 'a', list: [1,2,3]})).to.be.a('string')
+            .and.eql('1a2a3a');
+    });
+
     it('parse if empty when condition is true', function() {
         expect(p.parse({baz: 'dog'})).to.be.a('string').and.eql('dog');
     });
