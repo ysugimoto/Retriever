@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Retriever by ysugimoto</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Retriever</h1>
+          <h2>A simple / lightweight JavaScript template engine</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/ysugimoto/Retriever/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/ysugimoto/Retriever/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/ysugimoto/Retriever" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a name="retriever" class="anchor" href="#retriever"><span class="octicon octicon-link"></span></a>Retriever</h1>
+
+<p>A simple / lightweight JavaScript template engine ( node / browser )</p>
+
+<h2>
+<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h2>
+
+<p>Class document is available:</p>
+
+<hr><h2>
+<a name="how-to-build--for-browser-" class="anchor" href="#how-to-build--for-browser-"><span class="octicon octicon-link"></span></a>How to build ( for browser )</h2>
+
+<p>Install task / test tool at global:</p>
+
+<pre><code>npm install -g grunt-cli mocha
+</code></pre>
+
+<p>Install development npms</p>
+
+<pre><code>npm install .
+</code></pre>
+
+<p>Run the build task</p>
+
+<pre><code>grunt build
+</code></pre>
+
+<hr><h2>
+<a name="basic-usage" class="anchor" href="#basic-usage"><span class="octicon octicon-link"></span></a>Basic Usage</h2>
+
+<p><code>Retriever.make(template)</code> and <code>parse(params)</code> will returns parsed string.</p>
+
+<h3>
+<a name="in-node" class="anchor" href="#in-node"><span class="octicon octicon-link"></span></a>In node</h3>
+
+<p>Simple require and call method.</p>
+
+<pre><code>var Retriever = require('retriever');
+var template  = 'Hello, {{libName}}!'
+var bind      = { libName: 'Retriever' };
+
+// will returns 'Hello, Retriever!'
+var result = Retriever.make(template).parse(bind);
+</code></pre>
+
+<h3>
+<a name="in-browser" class="anchor" href="#in-browser"><span class="octicon octicon-link"></span></a>In browser</h3>
+
+<p>Load a build-scripta and call method.</p>
+
+<pre><code>&lt;script src="build/retriever.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+var template = 'Hello, {{libName}}!'
+var bind     = { libName: 'Retriever' };
+
+// will returns 'Hello, Retriever!'
+var result = Retriever.make(template).parse(bind);
+&lt;/script&gt;
+</code></pre>
+
+<h2>
+<a name="supported-sections" class="anchor" href="#supported-sections"><span class="octicon octicon-link"></span></a>Supported sections</h2>
+
+<h3>
+<a name="if-elseif-else" class="anchor" href="#if-elseif-else"><span class="octicon octicon-link"></span></a>if-elseif-else</h3>
+
+<pre><code>var template = "{{if dat == 'foo'}}foo{{else if dat == 'bar'}}bar{{else}}baz{{/if}}"
+var bind     = { dat: 'bar' };
+
+// will returns 'bar'
+var result = Retriever.make(template).parse(bind);
+</code></pre>
+
+<h4>
+<a name="supported-features" class="anchor" href="#supported-features"><span class="octicon octicon-link"></span></a>Supported features</h4>
+
+<ul>
+<li>Relational operators: <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>, <code>==</code>. <code>===</code>, <code>!=</code>, <code>!==</code>
+</li>
+<li>Logical operators: <code>&amp;&amp;</code>, <code>||</code>
+</li>
+<li>Calculation like: <code>{{if a + b &gt; 100 * 10}}</code> ( a, b is supplied from parser parameter )</li>
+</ul><h3>
+<a name="loop" class="anchor" href="#loop"><span class="octicon octicon-link"></span></a>loop</h3>
+
+<pre><code>var template = "{{loop section}}{{value}}{{/loop}}"
+var bind     = {
+    section: [
+        { value: 'foo' },
+        { value: 'bar' },
+        { value: 'baz' }
+    ]
+};
+
+// will returns 'foobarbaz'
+var result = Retriever.make(template).parse(bind);
+</code></pre>
+
+<p>And Enable to use nested section.</p>
+        </section>
+
+        <footer>
+          Retriever is maintained by <a href="https://github.com/ysugimoto">ysugimoto</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
