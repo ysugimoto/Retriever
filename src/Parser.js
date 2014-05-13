@@ -330,9 +330,10 @@ Parser.prototype.closeProcess = function(mode, context) {
         parser,
         list,
         size,
+        index,
         stack = [],
-        i = 0,
-        piece = '';
+        piece = '',
+        i     = 0;
 
     this.nestLevel--;
     this.mode = Parser.STATUS_NORMAL;
@@ -356,7 +357,15 @@ Parser.prototype.closeProcess = function(mode, context) {
 
                 size = list.length;
                 for ( ; i < size; ++i ) {
-                    stack[stack.length] = Parser.make(context).parse(list[i] || {}).replace(/^[\n\s]+|[\n\s]+$/, '');
+
+                    // Create assign object
+                    if ( Object.prototype.toString.call(list[i]) === '[object Object]' ) {
+                        index = list[i];
+                    } else {
+                        index = {"@data": list[i]};
+                    }
+                    index["@parent"] = this.param;
+                    stack[stack.length] = Parser.make(context).parse(index).replace(/^[\n\s]+|[\n\s]+$/, '');
                 }
                 piece = stack.join('');
             } else {
