@@ -39,7 +39,7 @@
             "name": "src/Parser.js",
             "modules": {},
             "classes": {
-                "parser": 1
+                "Parser": 1
             },
             "fors": {},
             "namespaces": {}
@@ -53,7 +53,7 @@
                 "BNF": 1,
                 "Condition": 1,
                 "Ifcontext": 1,
-                "parser": 1
+                "Parser": 1
             },
             "fors": {},
             "namespaces": {},
@@ -131,9 +131,9 @@
             ],
             "author": "Yoshiaki Sugimoto <sugimoto@wnotes.net>"
         },
-        "parser": {
-            "name": "parser",
-            "shortname": "parser",
+        "Parser": {
+            "name": "Parser",
+            "shortname": "Parser",
             "classitems": [],
             "plugins": [],
             "extensions": [],
@@ -548,7 +548,7 @@
             "itemtype": "property",
             "name": "tpl",
             "type": "String",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -558,7 +558,7 @@
             "itemtype": "property",
             "name": "size",
             "type": "Number",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -568,7 +568,7 @@
             "itemtype": "property",
             "name": "idx",
             "type": "Number",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -578,7 +578,7 @@
             "itemtype": "property",
             "name": "mode",
             "type": "Number",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -588,7 +588,7 @@
             "itemtype": "property",
             "name": "processTree",
             "type": "Array",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -598,7 +598,7 @@
             "itemtype": "property",
             "name": "parsed",
             "type": "Array",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -608,7 +608,7 @@
             "itemtype": "property",
             "name": "line",
             "type": "Number",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -618,7 +618,7 @@
             "itemtype": "property",
             "name": "nestLevel",
             "type": "Number",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -628,7 +628,7 @@
             "itemtype": "property",
             "name": "leftDelimiter",
             "type": "String",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -638,7 +638,7 @@
             "itemtype": "property",
             "name": "rightDelimiter",
             "type": "String",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -659,7 +659,7 @@
                 "description": "parser Parser instance",
                 "type": "Object Parser"
             },
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -670,7 +670,7 @@
             "name": "STATUS_NORMAL",
             "type": "Number",
             "default": "0x00",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -681,7 +681,7 @@
             "name": "STATUS_IF",
             "type": "Number",
             "default": "0x01",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -692,7 +692,7 @@
             "name": "STATUS_LOOP",
             "type": "Number",
             "default": "0x10",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -703,7 +703,7 @@
             "name": "STATUS_PARSING",
             "type": "Number",
             "default": "0x11",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -713,7 +713,7 @@
             "itemtype": "property",
             "name": "escapeMap",
             "type": "Object",
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -735,7 +735,7 @@
                 "description": "",
                 "type": "String"
             },
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -757,7 +757,7 @@
                 "description": "",
                 "type": "String"
             },
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -779,7 +779,7 @@
                 "description": "",
                 "type": "Mixed"
             },
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -806,7 +806,7 @@
                 "description": "",
                 "type": "String"
             },
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         },
         {
@@ -833,7 +833,7 @@
                 "description": "value/null",
                 "type": "Mixed"
             },
-            "class": "parser",
+            "class": "Parser",
             "module": "Retriever"
         }
     ],
