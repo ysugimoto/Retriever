@@ -5,7 +5,7 @@ A simple / lightweight JavaScript template engine ( node / browser )
 
 ## Documentation
 
-Class document is available:
+Class document is available: http://ysugimoto.github.io/Retriever/docs/index.html
 
 ---
 
