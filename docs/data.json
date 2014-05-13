@@ -709,6 +709,38 @@
         {
             "file": "src/Parser.js",
             "line": 145,
+            "description": "Escape html tag/quote map",
+            "itemtype": "property",
+            "name": "escapeMap",
+            "type": "Object",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 159,
+            "description": "Escape html tag/quote",
+            "itemtype": "method",
+            "name": "_escape",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "str",
+                    "description": "",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "String"
+            },
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 180,
             "description": "Parse template with supplied paramter",
             "itemtype": "method",
             "name": "parse",
@@ -730,7 +762,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 239,
+            "line": 274,
             "description": "Open new process",
             "itemtype": "method",
             "name": "openProcess",
@@ -752,7 +784,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 283,
+            "line": 319,
             "description": "Close recent process",
             "itemtype": "method",
             "name": "closeProcess",
@@ -779,7 +811,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 335,
+            "line": 371,
             "description": "Get deep ojbect value at dot syntaxed",
             "itemtype": "method",
             "name": "getRecursiveValue",

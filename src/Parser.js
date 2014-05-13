@@ -143,6 +143,41 @@ Parser.STATUS_LOOP = 0x10;
 Parser.STATUS_PARSING = 0x11;
 
 /**
+ * Escape html tag/quote map
+ *
+ * @property escapeMap
+ * @type Object
+ */
+Parser.prototype.escapeMap = {
+    '<': '&lt;',
+    '>': '&gt:',
+    '"': '&quot;',
+    "'": '&apos;'
+};
+
+
+/**
+ * Escape html tag/quote
+ *
+ * @method _escape
+ * @private
+ * @param {String} str
+ * @return {String}
+ */
+Parser.prototype._escape = function(str) {
+    if ( str === null || str === void 0 ) {
+        return '';
+    }
+
+    var map = this.escapeMap,
+        sed = function(m) {
+            return map[m];
+        };
+
+    return str.toString().replace(/([<>"'])/g, sed);
+};
+
+/**
  * Parse template with supplied paramter
  *
  * @method parse
@@ -271,6 +306,7 @@ Parser.prototype.openProcess = function(mode) {
     } else {
         if ( this.nestLevel === 0 ) {
             val = this.getRecursiveValue(mode, this.param);
+            val = this._escape(val);
             this.mode = Parser.STATUS_NORMAL;
         } else {
             val = false;
