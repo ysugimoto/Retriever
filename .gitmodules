@@ -1,0 +1,3 @@
+[submodule "etc/yuidoc-theme-blue"]
+	path = etc/yuidoc-theme-blue
+	url = https://github.com/royriojas/yuidoc-theme-blue.git

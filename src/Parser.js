@@ -1,27 +1,155 @@
-var IfContext  = require('./IfContext');
+/**
+ * Retriever Component
+ *
+ * @module Retriever
+ */
 
+/**
+ * Parser class
+ *
+ * @class parser
+ * @constructor
+ * @param {String} template Template string
+ * @author Yoshiaki Sugimoto <sugimoto@wnotes.net>
+ */
 function Parser(template) {
+    /**
+     * Template string
+     *
+     * @property tpl
+     * @type String
+     */
     this.tpl  = template.split('');
+
+    /**
+     * Template string length
+     *
+     * @property size
+     * @type Number
+     */
     this.size = template.length;
-    this.idx  = 0;
+
+    /**
+     * Template string index
+     *
+     * @property idx
+     * @type Number
+     */
+    this.idx = 0;
+
+    /**
+     * Parser status mode
+     *
+     * @property mode
+     * @type Number
+     */
     this.mode = Parser.STATUS_NORMAL;
-    this.leftDelimiter  = '{{';
-    this.rightDelimiter = '}}';
+
+    /**
+     * Parsing process tree ( nestLevel = 0 only )
+     *
+     * @property processTree
+     * @type Array
+     */
     this.processTree = [];
+
+    /**
+     * Parsed string
+     *
+     * @property parsed
+     * @type Array
+     */
     this.parsed = [];
-    this.line = 0;
+
+    /**
+     * Template lines
+     *
+     * @property line
+     * @type Number
+     */
+    this.line = 1;
+
+    /**
+     * Parsing nest level
+     *
+     * @property nestLevel
+     * @type Number
+     */
     this.nestLevel = 0;
+
+    /**
+     * Parser recognize left delimiter
+     *
+     * @property leftDelimiter
+     * @type String
+     */
+    this.leftDelimiter = '{{';
+
+    /**
+     * Parser recognize right delimiter
+     *
+     * @property rightDelimiter
+     * @type String
+     */
+    this.rightDelimiter = '}}';
 }
 
+/**
+ * Static instanciate
+ *
+ * @method make
+ * @static
+ * @param {String} template Template string
+ * @return {Object Parser} parser Parser instance
+ */
 Parser.make = function(template) {
     return new Parser(template);
 };
 
-Parser.STATUS_NORMAL  = 0x00;
-Parser.STATUS_IF      = 0x01;
-Parser.STATUS_LOOP    = 0x10;
+/**
+ * Default status constant
+ *
+ * @property STATUS_NORMAL
+ * @type Number
+ * @default 0x00
+ */
+Parser.STATUS_NORMAL = 0x00;
+
+/**
+ * IF status constant
+ *
+ * @property STATUS_IF
+ * @type Number
+ * @default 0x01
+ */
+Parser.STATUS_IF = 0x01;
+
+/**
+ * LOOP status constant
+ *
+ * @property STATUS_LOOP
+ * @type Number
+ * @default 0x10
+ */
+Parser.STATUS_LOOP = 0x10;
+
+/**
+ * Parsing status constant
+ *
+ * @property STATUS_PARSING
+ * @type Number
+ * @default 0x11
+ */
 Parser.STATUS_PARSING = 0x11;
 
+/**
+ * Parse template with supplied paramter
+ *
+ * @method parse
+ * @public
+ * @param {Object} param Parsing paramter object
+ * @return {String}
+ */
 Parser.prototype.parse = function(param) {
     var stack = "",
         regex = new RegExp('^' + this.leftDelimiter + '([/])?(.+?)' + this.rightDelimiter + '$'),
@@ -31,18 +159,25 @@ Parser.prototype.parse = function(param) {
         c,
         cc = "";
 
-    this.param = param;
+    this.param = param || {};
 
-    while ( this.idx <= this.size ) {
+    while ( this.idx < this.size ) {
+        // get next char
         c = this.tpl[this.idx];
 
+        if ( c === '' || c === void 0 ) {
+            this.idx++;
+            continue;
+        }
+
+        // matched left delimiter
         if ( c + this.tpl[this.idx + 1] === this.leftDelimiter ) {
             this.mode = Parser.STATUS_PARSING;
-            this.parsed.pop();
             stack = this.leftDelimiter;
             this.idx++;
         }
 
+        // matched right delimiter
         else if ( c + this.tpl[this.idx + 1] === this.rightDelimiter ) {
             if ( this.mode == Parser.STATUS_NORMAL ) {
                 throw new Error('Unexpexted right delimiter chars: ' + this.rightDelimiter + ' at line ' + this.line);
@@ -51,6 +186,7 @@ Parser.prototype.parse = function(param) {
 
             m = regex.exec(stack);
             if ( ! m[1] ) {
+                // Open new process
                 tmp = this.openProcess(m[2]);
                 if ( this.nestLevel < 2 ) {
                     if ( tmp === false ) {
@@ -62,9 +198,12 @@ Parser.prototype.parse = function(param) {
                     parse += stack;
                 }
             } else {
+                // Close recent process
                 tmp = this.closeProcess(m[2], parse);
                 if ( this.nestLevel < 1 ) {
-                    this.parsed[this.parsed.length] = tmp;
+                    if ( tmp !== '' ) {
+                        this.parsed[this.parsed.length] = tmp;
+                    }
                     parse = "";
                 } else {
                     parse += stack;
@@ -82,6 +221,7 @@ Parser.prototype.parse = function(param) {
         }
         else {
             this.parsed[this.parsed.length] = c;
+            console.log(c);
         }
 
         if ( c === "\n" ) {
@@ -91,10 +231,19 @@ Parser.prototype.parse = function(param) {
         ++this.idx;
     }
 
+    // join and trim linefeed / space
     return this.parsed.join('').replace(/^[\n\s]+|[\n\s]+$/, '');
 
 };
 
+/**
+ * Open new process
+ *
+ * @method openProcess
+ * @private
+ * @param {String} mode Section string
+ * @return {Mixed}
+ */
 Parser.prototype.openProcess = function(mode) {
     var val = "";
 
@@ -131,6 +280,15 @@ Parser.prototype.openProcess = function(mode) {
     return val;
 };
 
+/**
+ * Close recent process
+ *
+ * @method closeProcess
+ * @private
+ * @param {String} mode process string
+ * @param {String} context parsing context string
+ * @return {String}
+ */
 Parser.prototype.closeProcess = function(mode, context) {
     var proc,
         parser,
@@ -141,14 +299,15 @@ Parser.prototype.closeProcess = function(mode, context) {
         piece = '';
 
     this.nestLevel--;
+    this.mode = Parser.STATUS_NORMAL;
 
     switch ( mode ) {
         case 'if':
             if ( this.nestLevel === 0 ) {
-                proc = this.processTree.pop();
+                proc   = this.processTree.pop();
                 parser = new IfContext(proc.condition, context);
-                piece = parser.exec(this.param);
-                piece = Parser.make(piece).parse(this.param);
+                piece  = parser.exec(this.param);
+                piece  = Parser.make(piece).parse(this.param);
             } else {
                 piece = context;
             }
@@ -158,37 +317,49 @@ Parser.prototype.closeProcess = function(mode, context) {
             if ( this.nestLevel === 0 ) {
                 proc = this.processTree.pop();
                 list = this.getRecursiveValue(proc.condition, this.param) || [];
+
                 size = list.length;
                 for ( ; i < size; ++i ) {
                     stack[stack.length] = Parser.make(context).parse(list[i] || {}).replace(/^[\n\s]+|[\n\s]+$/, '');
                 }
-                piece = stack.join('\n');
+                piece = stack.join('');
             } else {
                 piece = context;
             }
             break;
     }
 
-    this.mode = Parser.STATUS_NORMAL;
     return piece;
 };
 
+/**
+ * Get deep ojbect value at dot syntaxed
+ *
+ * @method getRecursiveValue
+ * @private
+ * @param {String} key property key name
+ * @param {Object} param Parameter Object
+ * @return {Mixed} value/null
+ */
 Parser.prototype.getRecursiveValue = function(key, param) {
     var point = key.indexOf('.'),
         k;
 
     // key has not contain dot
     if ( point === -1 ) {
-        return param[key] || null;
+        return ( key in param ) ? param[key] : null;
     }
 
     k = key.slice(0, point);
 
-    if ( ! ( k in param ) || typeof params[k] !== 'object' ) {
+    if ( ! ( k in param ) || typeof param[k] !== 'object' ) {
         return null;
     }
 
-    return this.getRecursiveValue(k.slice(++point), param[k]);
+    return this.getRecursiveValue(key.slice(++point), param[k]);
 };
 
+//= if node
+var IfContext  = require('./IfContext');
 module.exports = Parser;
+//= end
