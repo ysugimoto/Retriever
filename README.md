@@ -63,6 +63,8 @@ var result = Retriever.make(template).parse(bind);
 </script>
 ```
 
+bind value is always escape for HTML.
+
 ## Supported sections
 
 ### if-elseif-else
