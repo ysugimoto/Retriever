@@ -1,0 +1,809 @@
+{
+    "project": {
+        "name": "Retriever",
+        "description": "A simple / lightweight JavaScript template engine",
+        "version": "0.2.0",
+        "url": "https://github.com/ysugimoto/Retriever"
+    },
+    "files": {
+        "src/BNF.js": {
+            "name": "src/BNF.js",
+            "modules": {
+                "Retriever": 1
+            },
+            "classes": {
+                "BNF": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "src/Condition.js": {
+            "name": "src/Condition.js",
+            "modules": {},
+            "classes": {
+                "Condition": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "src/IfContext.js": {
+            "name": "src/IfContext.js",
+            "modules": {},
+            "classes": {
+                "Ifcontext": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        },
+        "src/Parser.js": {
+            "name": "src/Parser.js",
+            "modules": {},
+            "classes": {
+                "parser": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {
+        "Retriever": {
+            "name": "Retriever",
+            "submodules": {},
+            "classes": {
+                "BNF": 1,
+                "Condition": 1,
+                "Ifcontext": 1,
+                "parser": 1
+            },
+            "fors": {},
+            "namespaces": {},
+            "tag": "module",
+            "file": "src/Parser.js",
+            "line": 7,
+            "description": "Retriever Component"
+        }
+    },
+    "classes": {
+        "BNF": {
+            "name": "BNF",
+            "shortname": "BNF",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Retriever",
+            "namespace": "",
+            "file": "src/BNF.js",
+            "line": 7,
+            "description": "Backus Naur Form Calculator",
+            "is_constructor": 1,
+            "author": "Yoshiaki Sugimoto <sugimoto@wnotes.net>"
+        },
+        "Condition": {
+            "name": "Condition",
+            "shortname": "Condition",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Retriever",
+            "namespace": "",
+            "file": "src/Condition.js",
+            "line": 7,
+            "description": "Condition parser",
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "cond",
+                    "description": "Condition string",
+                    "type": "String"
+                }
+            ],
+            "author": "Yoshiaki Sugimoto <sugimoto@wnotes.net>"
+        },
+        "Ifcontext": {
+            "name": "Ifcontext",
+            "shortname": "Ifcontext",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Retriever",
+            "namespace": "",
+            "file": "src/IfContext.js",
+            "line": 7,
+            "description": "If context parser",
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "condition",
+                    "description": "First if constion",
+                    "type": "String"
+                },
+                {
+                    "name": "context",
+                    "description": "Context in if section",
+                    "type": "String"
+                }
+            ],
+            "author": "Yoshiaki Sugimoto <sugimoto@wnotes.net>"
+        },
+        "parser": {
+            "name": "parser",
+            "shortname": "parser",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "module": "Retriever",
+            "namespace": "",
+            "file": "src/Parser.js",
+            "line": 7,
+            "description": "Parser class",
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "template",
+                    "description": "Template string",
+                    "type": "String"
+                }
+            ],
+            "author": "Yoshiaki Sugimoto <sugimoto@wnotes.net>"
+        }
+    },
+    "classitems": [
+        {
+            "file": "src/BNF.js",
+            "line": 15,
+            "description": "BNF token",
+            "itemtype": "property",
+            "name": "token",
+            "type": "Array",
+            "class": "BNF",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/BNF.js",
+            "line": 23,
+            "description": "Token size",
+            "itemtype": "property",
+            "name": "size",
+            "type": "Number",
+            "class": "BNF",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/BNF.js",
+            "line": 31,
+            "description": "Token index",
+            "itemtype": "property",
+            "name": "idx",
+            "type": "Number",
+            "class": "BNF",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/BNF.js",
+            "line": 40,
+            "description": "Static instantiate",
+            "itemtype": "method",
+            "name": "make",
+            "static": 1,
+            "params": [
+                {
+                    "name": "token",
+                    "description": "BNF parse token array",
+                    "type": "Array"
+                }
+            ],
+            "return": {
+                "description": "BNF instance",
+                "type": "Object BNF"
+            },
+            "class": "BNF",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/BNF.js",
+            "line": 52,
+            "description": "Parse and calculate token",
+            "itemtype": "method",
+            "name": "calculate",
+            "access": "public",
+            "tagname": "",
+            "return": {
+                "description": "Number/String",
+                "type": "Mixed"
+            },
+            "class": "BNF",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/BNF.js",
+            "line": 65,
+            "description": "Add or Sub process",
+            "itemtype": "method",
+            "name": "addSub",
+            "access": "private",
+            "tagname": "",
+            "return": {
+                "description": "",
+                "type": "Mixed"
+            },
+            "class": "BNF",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/BNF.js",
+            "line": 86,
+            "description": "Multiple or Division process",
+            "itemtype": "method",
+            "name": "mulDiv",
+            "access": "private",
+            "tagname": "",
+            "return": {
+                "description": "",
+                "type": "Mixed"
+            },
+            "class": "BNF",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/BNF.js",
+            "line": 107,
+            "description": "Factor ( consider calculate priority ) process",
+            "itemtype": "method",
+            "name": "factor",
+            "access": "private",
+            "tagname": "",
+            "return": {
+                "description": "",
+                "type": "Mixed"
+            },
+            "class": "BNF",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 16,
+            "description": "Tokenized chars array",
+            "itemtype": "property",
+            "name": "cond",
+            "type": "Array",
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 24,
+            "description": "Parsing index",
+            "itemtype": "property",
+            "name": "idx",
+            "type": "Number",
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 32,
+            "description": "Relational operator",
+            "itemtype": "property",
+            "name": "compare",
+            "type": "String",
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 40,
+            "description": "BNF token array on left-hand",
+            "itemtype": "property",
+            "name": "leftValue",
+            "type": "Array",
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 48,
+            "description": "BNF token array on right-hand",
+            "itemtype": "property",
+            "name": "leftValue",
+            "type": "Array",
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 57,
+            "description": "Static instantiate",
+            "itemtype": "method",
+            "name": "make",
+            "static": 1,
+            "params": [
+                {
+                    "name": "token",
+                    "description": "condition string",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Object Condition"
+            },
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 69,
+            "description": "Convert tokenized array from Condition string",
+            "itemtype": "method",
+            "name": "tokenize",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "token",
+                    "description": "Condtion string",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Array"
+            },
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 85,
+            "description": "Get deep ojbect value at dot syntaxed",
+            "itemtype": "method",
+            "name": "getRecursiveValue",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "key",
+                    "description": "property key name",
+                    "type": "String"
+                },
+                {
+                    "name": "param",
+                    "description": "Parameter Object",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "value/null",
+                "type": "Mixed"
+            },
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 112,
+            "description": "Judge Condition is acceptance ( to be true )",
+            "itemtype": "method",
+            "name": "acceptance",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "value",
+                    "description": "Condition paramter object",
+                    "type": "Object"
+                },
+                {
+                    "name": "index",
+                    "description": "token index",
+                    "type": "Number"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Boolean"
+            },
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 182,
+            "description": "Try get value as primitive",
+            "itemtype": "method",
+            "name": "parsePrimitiveValue",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "val",
+                    "description": "parse value",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Mixed"
+            },
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Condition.js",
+            "line": 202,
+            "description": "Compare with opelator",
+            "itemtype": "method",
+            "name": "_compare",
+            "access": "private",
+            "tagname": "",
+            "return": {
+                "description": "",
+                "type": "Boolean"
+            },
+            "class": "Condition",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/IfContext.js",
+            "line": 17,
+            "description": "First if condition",
+            "itemtype": "property",
+            "name": "condition",
+            "type": "String",
+            "class": "Ifcontext",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/IfContext.js",
+            "line": 25,
+            "description": "Splitted context list",
+            "itemtype": "property",
+            "name": "contexts",
+            "type": "Array",
+            "class": "Ifcontext",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/IfContext.js",
+            "line": 34,
+            "description": "Static instantiate",
+            "itemtype": "method",
+            "name": "make",
+            "static": 1,
+            "params": [
+                {
+                    "name": "condition",
+                    "description": "First if constion",
+                    "type": "String"
+                },
+                {
+                    "name": "context",
+                    "description": "Context in if section",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "IfContext IfContext instance",
+                "type": "Object IfContext"
+            },
+            "class": "Ifcontext",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/IfContext.js",
+            "line": 47,
+            "description": "Analyze context\nParse and split  else if - else - section",
+            "itemtype": "method",
+            "name": "analyze",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "context",
+                    "description": "",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "ret Context list array",
+                "type": "Array"
+            },
+            "class": "Ifcontext",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/IfContext.js",
+            "line": 96,
+            "description": "Execute context with aupplied condition parameters",
+            "itemtype": "method",
+            "name": "exec",
+            "access": "public",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "param",
+                    "description": "Condition paramters",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "parsed Parsed context section",
+                "type": "String"
+            },
+            "class": "Ifcontext",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 16,
+            "description": "Template string",
+            "itemtype": "property",
+            "name": "tpl",
+            "type": "String",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 24,
+            "description": "Template string length",
+            "itemtype": "property",
+            "name": "size",
+            "type": "Number",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 32,
+            "description": "Template string index",
+            "itemtype": "property",
+            "name": "idx",
+            "type": "Number",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 40,
+            "description": "Parser status mode",
+            "itemtype": "property",
+            "name": "mode",
+            "type": "Number",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 48,
+            "description": "Parsing process tree ( nestLevel = 0 only )",
+            "itemtype": "property",
+            "name": "processTree",
+            "type": "Array",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 56,
+            "description": "Parsed string",
+            "itemtype": "property",
+            "name": "parsed",
+            "type": "Array",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 64,
+            "description": "Template lines",
+            "itemtype": "property",
+            "name": "line",
+            "type": "Number",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 72,
+            "description": "Parsing nest level",
+            "itemtype": "property",
+            "name": "nestLevel",
+            "type": "Number",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 80,
+            "description": "Parser recognize left delimiter",
+            "itemtype": "property",
+            "name": "leftDelimiter",
+            "type": "String",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 88,
+            "description": "Parser recognize right delimiter",
+            "itemtype": "property",
+            "name": "rightDelimiter",
+            "type": "String",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 97,
+            "description": "Static instanciate",
+            "itemtype": "method",
+            "name": "make",
+            "static": 1,
+            "params": [
+                {
+                    "name": "template",
+                    "description": "Template string",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "parser Parser instance",
+                "type": "Object Parser"
+            },
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 109,
+            "description": "Default status constant",
+            "itemtype": "property",
+            "name": "STATUS_NORMAL",
+            "type": "Number",
+            "default": "0x00",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 118,
+            "description": "IF status constant",
+            "itemtype": "property",
+            "name": "STATUS_IF",
+            "type": "Number",
+            "default": "0x01",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 127,
+            "description": "LOOP status constant",
+            "itemtype": "property",
+            "name": "STATUS_LOOP",
+            "type": "Number",
+            "default": "0x10",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 136,
+            "description": "Parsing status constant",
+            "itemtype": "property",
+            "name": "STATUS_PARSING",
+            "type": "Number",
+            "default": "0x11",
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 145,
+            "description": "Parse template with supplied paramter",
+            "itemtype": "method",
+            "name": "parse",
+            "access": "public",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "param",
+                    "description": "Parsing paramter object",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "String"
+            },
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 239,
+            "description": "Open new process",
+            "itemtype": "method",
+            "name": "openProcess",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "mode",
+                    "description": "Section string",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "Mixed"
+            },
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 283,
+            "description": "Close recent process",
+            "itemtype": "method",
+            "name": "closeProcess",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "mode",
+                    "description": "process string",
+                    "type": "String"
+                },
+                {
+                    "name": "context",
+                    "description": "parsing context string",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "",
+                "type": "String"
+            },
+            "class": "parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 335,
+            "description": "Get deep ojbect value at dot syntaxed",
+            "itemtype": "method",
+            "name": "getRecursiveValue",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "key",
+                    "description": "property key name",
+                    "type": "String"
+                },
+                {
+                    "name": "param",
+                    "description": "Parameter Object",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "value/null",
+                "type": "Mixed"
+            },
+            "class": "parser",
+            "module": "Retriever"
+        }
+    ],
+    "warnings": []
+}
