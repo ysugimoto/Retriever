@@ -30,7 +30,7 @@
             "name": "src/IfContext.js",
             "modules": {},
             "classes": {
-                "Ifcontext": 1
+                "IfContext": 1
             },
             "fors": {},
             "namespaces": {}
@@ -52,7 +52,7 @@
             "classes": {
                 "BNF": 1,
                 "Condition": 1,
-                "Ifcontext": 1,
+                "IfContext": 1,
                 "Parser": 1
             },
             "fors": {},
@@ -103,9 +103,9 @@
             ],
             "author": "Yoshiaki Sugimoto <sugimoto@wnotes.net>"
         },
-        "Ifcontext": {
-            "name": "Ifcontext",
-            "shortname": "Ifcontext",
+        "IfContext": {
+            "name": "IfContext",
+            "shortname": "IfContext",
             "classitems": [],
             "plugins": [],
             "extensions": [],
@@ -458,7 +458,7 @@
             "itemtype": "property",
             "name": "condition",
             "type": "String",
-            "class": "Ifcontext",
+            "class": "IfContext",
             "module": "Retriever"
         },
         {
@@ -468,7 +468,7 @@
             "itemtype": "property",
             "name": "contexts",
             "type": "Array",
-            "class": "Ifcontext",
+            "class": "IfContext",
             "module": "Retriever"
         },
         {
@@ -494,7 +494,7 @@
                 "description": "IfContext IfContext instance",
                 "type": "Object IfContext"
             },
-            "class": "Ifcontext",
+            "class": "IfContext",
             "module": "Retriever"
         },
         {
@@ -516,7 +516,7 @@
                 "description": "ret Context list array",
                 "type": "Array"
             },
-            "class": "Ifcontext",
+            "class": "IfContext",
             "module": "Retriever"
         },
         {
@@ -538,7 +538,7 @@
                 "description": "parsed Parsed context section",
                 "type": "String"
             },
-            "class": "Ifcontext",
+            "class": "IfContext",
             "module": "Retriever"
         },
         {

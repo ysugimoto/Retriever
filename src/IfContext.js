@@ -7,7 +7,7 @@
 /**
  * If context parser
  *
- * @class Ifcontext
+ * @class IfContext
  * @constructor
  * @param {String} condition First if constion
  * @param {String} context Context in if section
