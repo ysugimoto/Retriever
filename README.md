@@ -1,6 +1,8 @@
 Retriever
 =========
 
+[![Build Status](https://travis-ci.org/ysugimoto/Retriever.svg?branch=master)](https://travis-ci.org/ysugimoto/Retriever)
+
 A simple / lightweight JavaScript template engine ( node / browser )
 
 ## Documentation
