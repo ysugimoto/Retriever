@@ -3,7 +3,7 @@ YUI.add("yuidoc-meta", function(Y) {
     "classes": [
         "BNF",
         "Condition",
-        "Ifcontext",
+        "IfContext",
         "Parser"
     ],
     "modules": [
