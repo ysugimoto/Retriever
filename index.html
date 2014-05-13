@@ -117,6 +117,8 @@ var result = Retriever.make(template).parse(bind);
 </ul><h3>
 <a name="loop" class="anchor" href="#loop"><span class="octicon octicon-link"></span></a>loop</h3>
 
+<p>When <code>Array&lt;Object&gt;</code> loop, index can access:</p>
+
 <pre><code>var template = "{{loop section}}{{value}}{{/loop}}"
 var bind     = {
     section: [
@@ -127,6 +129,24 @@ var bind     = {
 };
 
 // will returns 'foobarbaz'
+var result = Retriever.make(template).parse(bind);
+</code></pre>
+
+<p>When <code>Array&lt;Number|String|Booelan&gt;</code> loop,  index can access through <code>@data</code> index:
+
+<pre><code>var template = "{{loop list}}{{@data}}{{/loop}}"
+var bind     = { list: [1, 2, 3, 4, 5, 6] };
+
+// will returns '123456'
+var result = Retriever.make(template).parse(bind);
+</code></pre>
+
+<p>In the above case, It can access parent Object through <code>@parent</code> index:
+
+<pre><code>var template = "{{loop list}}{{@data}}{{@parent.foo}}{{/loop}}"
+var bind     = { foo: 'bar', list: [1, 2, 3, 4, 5, 6] };
+
+// will returns '1bar2bar3bar4bar5bar6bar'
 var result = Retriever.make(template).parse(bind);
 </code></pre>
 
