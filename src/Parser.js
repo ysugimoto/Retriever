@@ -7,7 +7,7 @@
 /**
  * Parser class
  *
- * @class parser
+ * @class Parser
  * @constructor
  * @param {String} template Template string
  * @author Yoshiaki Sugimoto <sugimoto@wnotes.net>

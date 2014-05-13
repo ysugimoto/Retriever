@@ -4,7 +4,7 @@ YUI.add("yuidoc-meta", function(Y) {
         "BNF",
         "Condition",
         "Ifcontext",
-        "parser"
+        "Parser"
     ],
     "modules": [
         "Retriever"
