@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en" class="yui-overrride">
+<head>
+    <meta charset="utf-8">
+    <title>src/Parser.js - Retriever</title>
+    <link rel="stylesheet" href="http://yui.yahooapis.com/3.9.1/build/cssgrids/cssgrids-min.css">
+    <link rel="stylesheet" href="../assets/vendor/prettify/prettify-min.css">
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700' rel='stylesheet' type='text/css'>
+    <link rel="shortcut icon" type="image/png" href="../assets/favicon.png">
+    <script src="http://yui.yahooapis.com/combo?3.9.1/build/yui/yui-min.js"></script>
+    <link rel="stylesheet" href="../assets/css/main.css" id="site_styles">
+</head>
+<body class="yui3-skin-sam">
+
+<div id="doc">
+    <div id="hd" class="yui3-g header">
+        <div class="yui3-u-3-4">
+            <h1 class="blue-main-title">Retriever</h1>
+        </div>
+        <div class="yui3-u-1-4 version project-version">
+            API Docs for: 0.2.0
+        </div>
+    </div>
+    <div id="bd" class="yui3-g">
+
+        <div class="yui3-u-1-4">
+            <div id="docs-sidebar" class="sidebar apidocs">
+                <div id="api-list">
+    <h2 class="off-left">APIs</h2>
+    <div id="api-tabview" class="tabview">
+        <ul class="tabs">
+            <li><a href="#api-classes">Classes</a></li>
+            <li><a href="#api-modules">Modules</a></li>
+        </ul>
+
+        <div id="api-tabview-filter">
+            <input type="search" id="api-filter" placeholder="Type to filter APIs">
+        </div>
+
+        <div id="api-tabview-panel">
+            <ul id="api-classes" class="apis classes">
+            
+                <li><a href="../classes/BNF.html">BNF</a></li>
+            
+                <li><a href="../classes/Condition.html">Condition</a></li>
+            
+                <li><a href="../classes/Ifcontext.html">Ifcontext</a></li>
+            
+                <li><a href="../classes/parser.html">parser</a></li>
+            
+            </ul>
+
+            <ul id="api-modules" class="apis modules">
+            
+                <li><a href="../modules/Retriever.html">Retriever</a></li>
+            
+            </ul>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </div>
+        <div class="yui3-u-3-4">
+                <div id="api-options">
+        Show:
+        <label for="api-show-inherited">
+            <input type="checkbox" id="api-show-inherited" checked>
+            Inherited
+        </label>
+
+        <label for="api-show-protected">
+            <input type="checkbox" id="api-show-protected">
+            Protected
+        </label>
+
+        <label for="api-show-private">
+            <input type="checkbox" id="api-show-private">
+            Private
+        </label>
+        <label for="api-show-deprecated">
+            <input type="checkbox" id="api-show-deprecated">
+            Deprecated
+        </label>
+
+    </div>
+
+
+            <div class="apidocs">
+                <div id="docs-main">
+                    <div class="content">
+                        <h1 class="file-heading">File: src/Parser.js</h1>
+
+<div class="file">
+    <pre class="code prettyprint linenums">
+/**
+ * Retriever Component
+ *
+ * @module Retriever
+ */
+
+/**
+ * Parser class
+ *
+ * @class parser
+ * @constructor
+ * @param {String} template Template string
+ * @author Yoshiaki Sugimoto &lt;sugimoto@wnotes.net&gt;
+ */
+function Parser(template) {
+    /**
+     * Template string
+     *
+     * @property tpl
+     * @type String
+     */
+    this.tpl  = template.split(&#x27;&#x27;);
+
+    /**
+     * Template string length
+     *
+     * @property size
+     * @type Number
+     */
+    this.size = template.length;
+
+    /**
+     * Template string index
+     *
+     * @property idx
+     * @type Number
+     */
+    this.idx = 0;
+
+    /**
+     * Parser status mode
+     *
+     * @property mode
+     * @type Number
+     */
+    this.mode = Parser.STATUS_NORMAL;
+
+    /**
+     * Parsing process tree ( nestLevel = 0 only )
+     *
+     * @property processTree
+     * @type Array
+     */
+    this.processTree = [];
+
+    /**
+     * Parsed string
+     *
+     * @property parsed
+     * @type Array
+     */
+    this.parsed = [];
+
+    /**
+     * Template lines
+     *
+     * @property line
+     * @type Number
+     */
+    this.line = 1;
+
+    /**
+     * Parsing nest level
+     *
+     * @property nestLevel
+     * @type Number
+     */
+    this.nestLevel = 0;
+
+    /**
+     * Parser recognize left delimiter
+     *
+     * @property leftDelimiter
+     * @type String
+     */
+    this.leftDelimiter = &#x27;{{&#x27;;
+
+    /**
+     * Parser recognize right delimiter
+     *
+     * @property rightDelimiter
+     * @type String
+     */
+    this.rightDelimiter = &#x27;}}&#x27;;
+}
+
+/**
+ * Static instanciate
+ *
+ * @method make
+ * @static
+ * @param {String} template Template string
+ * @return {Object Parser} parser Parser instance
+ */
+Parser.make = function(template) {
+    return new Parser(template);
+};
+
+/**
+ * Default status constant
+ *
+ * @property STATUS_NORMAL
+ * @type Number
+ * @default 0x00
+ */
+Parser.STATUS_NORMAL = 0x00;
+
+/**
+ * IF status constant
+ *
+ * @property STATUS_IF
+ * @type Number
+ * @default 0x01
+ */
+Parser.STATUS_IF = 0x01;
+
+/**
+ * LOOP status constant
+ *
+ * @property STATUS_LOOP
+ * @type Number
+ * @default 0x10
+ */
+Parser.STATUS_LOOP = 0x10;
+
+/**
+ * Parsing status constant
+ *
+ * @property STATUS_PARSING
+ * @type Number
+ * @default 0x11
+ */
+Parser.STATUS_PARSING = 0x11;
+
+/**
+ * Parse template with supplied paramter
+ *
+ * @method parse
+ * @public
+ * @param {Object} param Parsing paramter object
+ * @return {String}
+ */
+Parser.prototype.parse = function(param) {
+    var stack = &quot;&quot;,
+        regex = new RegExp(&#x27;^&#x27; + this.leftDelimiter + &#x27;([/])?(.+?)&#x27; + this.rightDelimiter + &#x27;$&#x27;),
+        parse = &quot;&quot;,
+        tmp,
+        m,
+        c,
+        cc = &quot;&quot;;
+
+    this.param = param || {};
+
+    while ( this.idx &lt; this.size ) {
+        // get next char
+        c = this.tpl[this.idx];
+
+        if ( c === &#x27;&#x27; || c === void 0 ) {
+            this.idx++;
+            continue;
+        }
+
+        // matched left delimiter
+        if ( c + this.tpl[this.idx + 1] === this.leftDelimiter ) {
+            this.mode = Parser.STATUS_PARSING;
+            stack = this.leftDelimiter;
+            this.idx++;
+        }
+
+        // matched right delimiter
+        else if ( c + this.tpl[this.idx + 1] === this.rightDelimiter ) {
+            if ( this.mode == Parser.STATUS_NORMAL ) {
+                throw new Error(&#x27;Unexpexted right delimiter chars: &#x27; + this.rightDelimiter + &#x27; at line &#x27; + this.line);
+            }
+            stack += this.rightDelimiter;
+
+            m = regex.exec(stack);
+            if ( ! m[1] ) {
+                // Open new process
+                tmp = this.openProcess(m[2]);
+                if ( this.nestLevel &lt; 2 ) {
+                    if ( tmp === false ) {
+                        parse += stack;
+                    } else if ( tmp !== &quot;&quot; ) {
+                        this.parsed[this.parsed.length] = tmp;
+                    }
+                } else {
+                    parse += stack;
+                }
+            } else {
+                // Close recent process
+                tmp = this.closeProcess(m[2], parse);
+                if ( this.nestLevel &lt; 1 ) {
+                    if ( tmp !== &#x27;&#x27; ) {
+                        this.parsed[this.parsed.length] = tmp;
+                    }
+                    parse = &quot;&quot;;
+                } else {
+                    parse += stack;
+                }
+            }
+            stack = &quot;&quot;;
+            this.idx++;
+        }
+
+        else if ( this.mode === Parser.STATUS_PARSING ) {
+            stack += c;
+        }
+        else if ( this.mode === Parser.STATUS_IF || this.mode === Parser.STATUS_LOOP ) {
+            parse += c;
+        }
+        else {
+            this.parsed[this.parsed.length] = c;
+            console.log(c);
+        }
+
+        if ( c === &quot;\n&quot; ) {
+            ++this.line;
+        }
+
+        ++this.idx;
+    }
+
+    // join and trim linefeed / space
+    return this.parsed.join(&#x27;&#x27;).replace(/^[\n\s]+|[\n\s]+$/, &#x27;&#x27;);
+
+};
+
+/**
+ * Open new process
+ *
+ * @method openProcess
+ * @private
+ * @param {String} mode Section string
+ * @return {Mixed}
+ */
+Parser.prototype.openProcess = function(mode) {
+    var val = &quot;&quot;;
+
+    if ( /^if\s/.test(mode) ) {
+        this.mode = Parser.STATUS_IF;
+        if ( this.nestLevel === 0 ) {
+            this.processTree.push({
+                mode: this.mode,
+                condition: mode.replace(/^if\s(.+?)$/, &#x27;$1&#x27;)
+            });
+        }
+        this.nestLevel++;
+    } else if ( /^else/.test(mode) ) {
+        val = false;
+        this.mode = Parser.STATUS_IF;
+    } else if ( /^loop/.test(mode) ) {
+        if ( this.nestLevel === 0 ) {
+            this.mode = Parser.STATUS_LOOP;
+            this.processTree.push({
+                mode: this.mode,
+                condition: mode.replace(/^loop\s(.+?)$/, &#x27;$1&#x27;)
+            });
+        }
+        this.nestLevel++;
+    } else {
+        if ( this.nestLevel === 0 ) {
+            val = this.getRecursiveValue(mode, this.param);
+            this.mode = Parser.STATUS_NORMAL;
+        } else {
+            val = false;
+        }
+    }
+
+    return val;
+};
+
+/**
+ * Close recent process
+ *
+ * @method closeProcess
+ * @private
+ * @param {String} mode process string
+ * @param {String} context parsing context string
+ * @return {String}
+ */
+Parser.prototype.closeProcess = function(mode, context) {
+    var proc,
+        parser,
+        list,
+        size,
+        stack = [],
+        i = 0,
+        piece = &#x27;&#x27;;
+
+    this.nestLevel--;
+    this.mode = Parser.STATUS_NORMAL;
+
+    switch ( mode ) {
+        case &#x27;if&#x27;:
+            if ( this.nestLevel === 0 ) {
+                proc   = this.processTree.pop();
+                parser = new IfContext(proc.condition, context);
+                piece  = parser.exec(this.param);
+                piece  = Parser.make(piece).parse(this.param);
+            } else {
+                piece = context;
+            }
+            break;
+
+        case &#x27;loop&#x27;:
+            if ( this.nestLevel === 0 ) {
+                proc = this.processTree.pop();
+                list = this.getRecursiveValue(proc.condition, this.param) || [];
+
+                size = list.length;
+                for ( ; i &lt; size; ++i ) {
+                    stack[stack.length] = Parser.make(context).parse(list[i] || {}).replace(/^[\n\s]+|[\n\s]+$/, &#x27;&#x27;);
+                }
+                piece = stack.join(&#x27;&#x27;);
+            } else {
+                piece = context;
+            }
+            break;
+    }
+
+    return piece;
+};
+
+/**
+ * Get deep ojbect value at dot syntaxed
+ *
+ * @method getRecursiveValue
+ * @private
+ * @param {String} key property key name
+ * @param {Object} param Parameter Object
+ * @return {Mixed} value/null
+ */
+Parser.prototype.getRecursiveValue = function(key, param) {
+    var point = key.indexOf(&#x27;.&#x27;),
+        k;
+
+    // key has not contain dot
+    if ( point === -1 ) {
+        return ( key in param ) ? param[key] : null;
+    }
+
+    k = key.slice(0, point);
+
+    if ( ! ( k in param ) || typeof param[k] !== &#x27;object&#x27; ) {
+        return null;
+    }
+
+    return this.getRecursiveValue(key.slice(++point), param[k]);
+};
+
+//= if node
+var IfContext  = require(&#x27;./IfContext&#x27;);
+module.exports = Parser;
+//= end
+
+    </pre>
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/prettify/prettify-min.js"></script>
+<script>prettyPrint();</script>
+<script src="../assets/js/yui-prettify.js"></script>
+<script src="../assets/../api.js"></script>
+<script src="../assets/js/api-filter.js"></script>
+<script src="../assets/js/api-list.js"></script>
+<script src="../assets/js/api-search.js"></script>
+<script src="../assets/js/apidocs.js"></script>
+</body>
+</html>

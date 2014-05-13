@@ -1,0 +1,38 @@
+{
+  "name": "Retriever",
+  "version": "0.2.0",
+  "description": "A simple / lightweight JavaScript template engine",
+  "main": "build/retriever.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ysugimoto/Retriever.git"
+  },
+  "keywords": [
+    "JavaScript",
+    "Template"
+  ],
+  "author": "Yoshiaki Sugimoto",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ysugimoto/Retriever/issues"
+  },
+  "devDependencies": {
+    "grunt-sprockets": "~0.6.4",
+    "grunt-cli": "~0.1.13",
+    "grunt-contrib-uglify": "~0.4.0",
+    "grunt": "~0.4.5",
+    "mocha": "~1.18.2",
+    "istanbul": "~0.2.9",
+    "grunt-contrib-yuidoc": "~0.5.2",
+    "grunt-plato": "~1.0.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-mocha-cli": "~1.8.0",
+    "chai": "~1.9.1"
+  }
+}
