@@ -5,6 +5,6 @@
 //= require IfContext.js
 //= require Parser.js
 
-global.Retriver = Parser;
+global.Retreiver = Parser;
 
 })(this);
