@@ -659,7 +659,6 @@ Parser.prototype.escapeMap = {
     "'": '&apos;'
 };
 
-
 /**
  * Escape html tag/quote
  *
@@ -684,11 +683,11 @@ Parser.prototype._escape = function(str) {
 /**
  * Initialize properties
  *
- * @method reset
+ * @method initialize
  * @private
  * @return {Void}
  */
-Parser.prototype.reset = function() {
+Parser.prototype.initialize = function() {
     this.idx         = 0;
     this.mode        = Parser.STATUS_NORMAL;
     this.processTree = [];
@@ -714,8 +713,7 @@ Parser.prototype.parse = function(param) {
         c,
         cc = "";
 
-    this.reset();
-
+    this.initialize();
     this.param = param || {};
 
     while ( this.idx < this.size ) {
