@@ -911,6 +911,6 @@ Parser.prototype.getRecursiveValue = function(key, param) {
 
 
 
-global.Retreiver = Parser;
+global.Retriever = Parser;
 
 })(this);
