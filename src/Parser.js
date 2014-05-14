@@ -92,6 +92,8 @@ function Parser(template) {
      * @type String
      */
     this.rightDelimiter = '}}';
+
+    this.compiledTemplate = null;
 }
 
 /**
@@ -212,6 +214,100 @@ Parser.prototype.parse = function(param) {
     this.initialize();
     this.param = param || {};
 
+    if ( typeof this.compiledTemplate !== 'function' ) {
+        this._compile();
+    }
+
+    return this.compiledTemplate(param);
+
+//    while ( this.idx < this.size ) {
+//        // get next char
+//        c = this.tpl[this.idx];
+//
+//        if ( c === '' || c === void 0 ) {
+//            this.idx++;
+//            continue;
+//        }
+//
+//        // matched left delimiter
+//        if ( c + this.tpl[this.idx + 1] === this.leftDelimiter ) {
+//            this.mode = Parser.STATUS_PARSING;
+//            stack = this.leftDelimiter;
+//            this.idx++;
+//        }
+//
+//        // matched right delimiter
+//        else if ( c + this.tpl[this.idx + 1] === this.rightDelimiter ) {
+//            if ( this.mode == Parser.STATUS_NORMAL ) {
+//                throw new Error('Unexpexted right delimiter chars: ' + this.rightDelimiter + ' at line ' + this.line);
+//            }
+//            stack += this.rightDelimiter;
+//
+//            m = regex.exec(stack);
+//            if ( ! m[1] ) {
+//                // Open new process
+//                tmp = this.openProcess(m[2]);
+//                if ( this.nestLevel < 2 ) {
+//                    if ( tmp === false ) {
+//                        parse += stack;
+//                    } else if ( tmp !== "" ) {
+//                        this.parsed[this.parsed.length] = tmp;
+//                    }
+//                } else {
+//                    parse += stack;
+//                }
+//            } else {
+//                // Close recent process
+//                tmp = this.closeProcess(m[2], parse);
+//                if ( this.nestLevel < 1 ) {
+//                    if ( tmp !== '' ) {
+//                        this.parsed[this.parsed.length] = tmp;
+//                    }
+//                    parse = "";
+//                } else {
+//                    parse += stack;
+//                }
+//            }
+//            stack = "";
+//            this.idx++;
+//        }
+//
+//        else if ( this.mode === Parser.STATUS_PARSING ) {
+//            stack += c;
+//        }
+//        else if ( this.mode === Parser.STATUS_IF || this.mode === Parser.STATUS_LOOP ) {
+//            parse += c;
+//        }
+//        else {
+//            this.parsed[this.parsed.length] = c;
+//        }
+//
+//        if ( c === "\n" ) {
+//            ++this.line;
+//        }
+//
+//        ++this.idx;
+//    }
+//
+//    // join and trim linefeed / space
+//    return this.parsed.join('').replace(/^[\n\s]+|[\n\s]+$/, '');
+
+};
+
+Parser.prototype._compile = function() {
+    var stack = "",
+        regex = new RegExp('^' + this.leftDelimiter + '([/])?(.+?)' + this.rightDelimiter + '$'),
+        parse = "",
+        tmp,
+        m,
+        c,
+        n = 0,
+        cc = "";
+
+    var compile = ['var buffer = [];'];
+    var syntax  = ['obj'];
+    var parsing = false;
+
     while ( this.idx < this.size ) {
         // get next char
         c = this.tpl[this.idx];
@@ -224,7 +320,12 @@ Parser.prototype.parse = function(param) {
         // matched left delimiter
         if ( c + this.tpl[this.idx + 1] === this.leftDelimiter ) {
             this.mode = Parser.STATUS_PARSING;
-            stack = this.leftDelimiter;
+            stack = '';
+            if ( cc !== '' && cc !== "\n" && !/^\s+$/.test(cc) ) {
+                compile[compile.length] = 'buffer[buffer.length]=\'' + cc.replace("'", "\'").replace(/^\n+|\n+$/g, '') + '\';';
+            }
+            cc = '';
+            parsing = true;
             this.idx++;
         }
 
@@ -233,59 +334,110 @@ Parser.prototype.parse = function(param) {
             if ( this.mode == Parser.STATUS_NORMAL ) {
                 throw new Error('Unexpexted right delimiter chars: ' + this.rightDelimiter + ' at line ' + this.line);
             }
-            stack += this.rightDelimiter;
+            
+            switch ( stack.charAt(0) ) {
+                case '/':
+                    stack = stack.slice(1);
+                    if ( stack === 'loop' ) {
+                        syntax.pop();
+                        n--;
+                    }
+                    compile[compile.length] = '}';
+                    break;
 
-            m = regex.exec(stack);
-            if ( ! m[1] ) {
-                // Open new process
-                tmp = this.openProcess(m[2]);
-                if ( this.nestLevel < 2 ) {
-                    if ( tmp === false ) {
-                        parse += stack;
-                    } else if ( tmp !== "" ) {
-                        this.parsed[this.parsed.length] = tmp;
+                case '@':
+                    break;
+
+                default:
+                    m = /^(if|else\sif|else|loop)(?:\s(.+))?/.exec(stack);
+                    if ( m !== null ) {
+                        switch ( m[1] ) {
+
+                            case 'if':
+                                compile[compile.length] = 'if(' + this._parseCondition(m[2], syntax) + '){';
+                                break;
+
+                            case 'else if':
+                                compile[compile.length] = '}else if(' + this._parseCondition(m[2], syntax) + '){';
+                                break;
+
+                            case 'else':
+                                compile[compile.length] = '}else{';
+                                break;
+
+                            case 'loop':
+                                compile[compile.length] = 'for(var i' + n + '=0,size' + n + '=' + syntax.join('.') + '.' + m[2] + '.length; i' + n + '<size' + n + '; ++i' + n + '){';
+                                syntax.push(m[2] + '[i' + n + ']');
+                                n++;
+                                break;
+                        }
+                    } else {
+                        compile[compile.length] = 'buffer[buffer.length]=' + syntax.join('.') + '.' + stack + ';';
                     }
-                } else {
-                    parse += stack;
-                }
-            } else {
-                // Close recent process
-                tmp = this.closeProcess(m[2], parse);
-                if ( this.nestLevel < 1 ) {
-                    if ( tmp !== '' ) {
-                        this.parsed[this.parsed.length] = tmp;
-                    }
-                    parse = "";
-                } else {
-                    parse += stack;
-                }
+                    break;
             }
-            stack = "";
+            parsing = false;
             this.idx++;
         }
 
-        else if ( this.mode === Parser.STATUS_PARSING ) {
+        else if ( parsing ) {
             stack += c;
-        }
-        else if ( this.mode === Parser.STATUS_IF || this.mode === Parser.STATUS_LOOP ) {
-            parse += c;
-        }
-        else {
-            this.parsed[this.parsed.length] = c;
-        }
-
-        if ( c === "\n" ) {
-            ++this.line;
+        } else {
+            cc += c;
         }
 
         ++this.idx;
     }
 
-    // join and trim linefeed / space
-    return this.parsed.join('').replace(/^[\n\s]+|[\n\s]+$/, '');
+    compile[compile.length] = 'return buffer.join(\'\');';
+
+    //return compile.join('\n');
+    return new Function('obj', compile.join(''));
 
 };
 
+Parser.prototype._parseCondition = function(condition, syntax) {
+    var token = condition.replace(/([><=!&\|\/\-\+\*]{,3}?)/g, ' $1 '),
+        tokens = token.split(' '),
+        size  = tokens.length,
+        i = 0,
+        cond = [],
+        t,
+        p;
+
+    // filter and format conditions
+    for ( ; i < size; ++i ) {
+        if ( tokens[i] === '' ) {
+            continue;
+        }
+        t = tokens[i].trim();
+        if ( /^[><=!&\|\/\-\+\*]{1,3}$/.test(t) ) {
+            cond[cond.length] = t;
+        } else {
+            p = this.getPrimitiveType(t);
+            if ( p === null ) {
+                cond[cond.length] = syntax.join('.') + '.' + t;
+            } else if ( typeof p === 'number' ) {
+                cond[cond.length] = p;
+            } else if ( typeof p === 'string' ) {
+                cond[cond.length] = "'" + p.replace("'", "\'") + "'";
+            }
+        }
+    }
+    return cond.join(' ');
+};
+
+Parser.prototype.getPrimitiveType = function(val) {
+    var m;
+
+    if ( null !== (m = /^['"](.+?)['"]$/.exec(val)) ) {
+        return m[1];
+    } else if ( null !== (m = /^([0-9\.]+)$/.exec(val)) ) {
+        return ( m[1].indexOf('.') !== -1 ) ? parseFloat(m[1]) : parseInt(m[1], 10);
+    }
+
+    return null;
+};
 /**
  * Open new process
  *
