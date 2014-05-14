@@ -682,6 +682,22 @@ Parser.prototype._escape = function(str) {
 };
 
 /**
+ * Initialize properties
+ *
+ * @method reset
+ * @private
+ * @return {Void}
+ */
+Parser.prototype.reset = function() {
+    this.idx         = 0;
+    this.mode        = Parser.STATUS_NORMAL;
+    this.processTree = [];
+    this.parsed      = [];
+    this.line        = 1;
+    this.nestLevel   = 0;
+};
+
+/**
  * Parse template with supplied paramter
  *
  * @method parse
@@ -697,6 +713,8 @@ Parser.prototype.parse = function(param) {
         m,
         c,
         cc = "";
+
+    this.reset();
 
     this.param = param || {};
 
