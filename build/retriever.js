@@ -760,7 +760,6 @@ Parser.prototype.parse = function(param) {
         }
         else {
             this.parsed[this.parsed.length] = c;
-            console.log(c);
         }
 
         if ( c === "\n" ) {
