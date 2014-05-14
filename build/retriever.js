@@ -7,508 +7,6 @@
  */
 
 /**
- * Backus Naur Form Calculator
- *
- * @class BNF
- * @constructor
- * @author Yoshiaki Sugimoto <sugimoto@wnotes.net>
- */
-function BNF(token) {
-    /**
-     * BNF token
-     *
-     * @property token
-     * @type Array
-     */
-    this.token = token;
-
-    /**
-     * Token size
-     *
-     * @property size
-     * @type Number
-     */
-    this.size = token.length;
-
-    /**
-     * Token index
-     *
-     * @property idx
-     * @type Number
-     */
-    this.idx = 0;
-}
-
-/**
- * Static instantiate
- *
- * @method make
- * @static
- * @param {Array} token BNF parse token array
- * @return {Object BNF} BNF instance
- */
-BNF.make = function(token) {
-    return new BNF(token);
-};
-
-/**
- * Parse and calculate token
- *
- * @method calculate
- * @public
- * @return {Mixed} Number/String
- */
-BNF.prototype.calculate = function() {
-    this.idx = 0;
-
-    return this.addSub();
-};
-
-/**
- * Add or Sub process
- *
- * @method addSub
- * @private
- * @return {Mixed}
- */
-BNF.prototype.addSub = function() {
-    var value = this.mulDiv();
-
-    while ( this.idx < this.size && /[\+\-]/.test(this.token[this.idx]) ) {
-        if ( this.token[this.idx++] === '+' ) {
-            value += this.mulDiv();
-        } else {
-            value -= this.mulDiv();
-        }
-    }
-
-    return value;
-};
-
-/**
- * Multiple or Division process
- *
- * @method mulDiv
- * @private
- * @return {Mixed}
- */
-BNF.prototype.mulDiv = function() {
-    var value = this.factor();
-
-    while ( this.idx < this.size && /[\*\/]/.test(this.token[this.idx]) ) {
-        if ( this.token[this.idx++] === '*' ) {
-            value *= this.factor();
-        } else {
-            value /= this.factor();
-        }
-    }
-
-    return value;
-};
-
-/**
- * Factor ( consider calculate priority ) process
- *
- * @method factor
- * @private
- * @return {Mixed}
- */
-BNF.prototype.factor = function() {
-    var value;
-
-    if ( this.token[this.idx] === '(' ) {
-        this.idx++;
-        value = this.addSub();
-
-        if ( this.token[this.idx] !== ')' ) {
-            throw new Error('Syntax Error: Invalid factor of "(".');
-        }
-
-        this.idx++;
-    } else {
-        value = this.token[this.idx++];
-        if ( /^[0-9\.]+$/.test(value) ) {
-            value = parseFloat(value);
-        }
-    }
-
-    return value;
-};
-
-
-
-/**
- * Retriever Component
- *
- * @module Retriever
- */
-
-/**
- * Condition parser
- *
- * @class Condition
- * @constructor
- * @param {String} cond Condition string
- * @author Yoshiaki Sugimoto <sugimoto@wnotes.net>
- */
-function Condition(cond) {
-    /**
-     * Tokenized chars array
-     *
-     * @property cond
-     * @type Array
-     */
-    this.cond = this.tokenize(cond);
-
-    /**
-     * Parsing index
-     *
-     * @property idx
-     * @type Number
-     */
-    this.idx = 0;
-
-    /**
-     * Relational operator
-     *
-     * @property compare
-     * @type String
-     */
-    this.compare = '';
-
-    /**
-     * BNF token array on left-hand
-     *
-     * @property leftValue
-     * @type Array
-     */
-    this.leftValue  = [];
-
-    /**
-     * BNF token array on right-hand
-     *
-     * @property leftValue
-     * @type Array
-     */
-    this.rightValue = [];
-}
-
-/**
- * Static instantiate
- *
- * @method make
- * @static
- * @param {String} token condition string
- * @return {Object Condition}
- */
-Condition.make = function(token) {
-    return new Condition(token);
-};
-
-/**
- * Convert tokenized array from Condition string
- *
- * @method tokenize
- * @private
- * @param {String} token Condtion string
- * @return {Array}
- */
-Condition.prototype.tokenize = function(token) {
-    token = token.replace(/([><=!&\|\/\-\+\*]{,3}?)/g, ' $1 ').replace('  ', ' ');
-
-    return token.split(' ').map(function(t) {
-        return t.trim();
-    });
-};
-
-/**
- * Get deep ojbect value at dot syntaxed
- *
- * @method getRecursiveValue
- * @private
- * @param {String} key property key name
- * @param {Object} param Parameter Object
- * @return {Mixed} value/null
- */
-Condition.prototype.getRecursiveValue = function(key, param) {
-    var point = key.indexOf('.'),
-        k;
-
-    // key has not contain dot
-    if ( point === -1 ) {
-        return ( key in param ) ? param[key] : null;
-    }
-
-    k = key.slice(0, point);
-
-    if ( ! ( k in param ) || typeof param[k] !== 'object' ) {
-        return null;
-    }
-
-    return this.getRecursiveValue(key.slice(++point), param[k]);
-};
-
-/**
- * Judge Condition is acceptance ( to be true )
- *
- * @method acceptance
- * @private
- * @param {Object} value Condition paramter object
- * @param {Number} index token index
- * @return {Boolean}
- */
-Condition.prototype.acceptance = function(value, index) {
-    var idx   = index || 0,
-        token = this.cond[idx++],
-        v,
-        vv;
-
-    // Do compare when token is not exists
-    if ( token === void 0 ) {
-        return this._compare();
-    }
-
-    // relational opelator
-    if ( /^[<>=]+$/.test(token) ) {
-        if ( this.compare !== '' ) {
-            // bad syntax
-            throw new Error('Syntax Error: Bad operator ' + token + ' after ' + this.compare);
-        }
-        this.compare = token;
-        v  = this.cond[idx++];
-        vv = this.parsePrimitiveValue(v);
-        this.rightValue[this.rightValue.length] = ( vv !== null ) ? vv : this.getRecursiveValue(v, value);
-    }
-    // BNF calculation
-    else if ( /^[\+\/\-\*]$/.test(token) ) {
-        if ( this.compare !== null ) {
-            this.rightValue[this.rightValue.length] = token;
-        } else {
-            this.leftValue[this.leftValue.length] = token;
-        }
-    }
-    // logical opelator "and"
-    else if ( token === '&&' ) {
-        if ( this._compare() === false ) {
-            return false;
-        }
-        this.leftValue  = [];
-        this.rightValue = [];
-        this.compare    = '';
-    }
-    // logical opelator "or"
-    else if ( token === '||' ) {
-        if ( this._compare() === true ) {
-            return true;
-        }
-        this.leftValue  = [];
-        this.rightValue = [];
-        this.compare    = '';
-    }
-    // value
-    else {
-        vv = this.parsePrimitiveValue(token);
-        if ( this.compare !== '' ) {
-            this.rightValue[this.rightValue.length] = ( vv !== null ) ? vv : this.getRecursiveValue(token, value);
-        } else {
-            this.leftValue[this.leftValue.length] = ( vv !== null ) ? vv : this.getRecursiveValue(token, value);
-        }
-    }
-
-    return this.acceptance(value, idx);
-};
-
-/**
- * Try get value as primitive
- *
- * @method parsePrimitiveValue
- * @private
- * @param {String} val parse value
- * @return {Mixed}
- */
-Condition.prototype.parsePrimitiveValue = function(val) {
-    var m;
-
-    if ( null !== (m = /^['"](.+?)['"]$/.exec(val)) ) {
-        return m[1];
-    } else if ( null !== (m = /^([0-9\.]+)$/.exec(val)) ) {
-        return ( m[1].indexOf('.') !== -1 ) ? parseFloat(m[1]) : parseInt(m[1], 10);
-    }
-
-    return null;
-};
-
-/**
- * Compare with opelator
- *
- * @method _compare
- * @private
- * @return {Boolean}
- */
-Condition.prototype._compare = function() {
-    var left  = BNF.make(this.leftValue).calculate(),
-        right = BNF.make(this.rightValue).calculate();
-
-    switch ( this.compare ) {
-        case '>':
-            return left > right;
-        case '<':
-            return left < right;
-        case '>=':
-            return left >= right;
-        case '<=':
-            return left <= right;
-        case '==':
-            return left == right;
-        case '===':
-            return left === right;
-        case '!=':
-            return left != right;
-        case '!==':
-            return left !== right;
-        default:
-            return !! left;
-    }
-};
-
-
-
-/**
- * Retriever Component
- *
- * @module Retriever
- */
-
-/**
- * If context parser
- *
- * @class IfContext
- * @constructor
- * @param {String} condition First if constion
- * @param {String} context Context in if section
- * @author Yoshiaki Sugimoto <sugimoto@wnotes.net>
- */
-function IfContext(condition, context) {
-    /**
-     * First if condition
-     *
-     * @property condition
-     * @type String
-     */
-    this.condition = condition;
-
-    /**
-     * Splitted context list
-     *
-     * @property contexts
-     * @type Array
-     */
-    this.contexts = this.analyze(context);
-}
-
-/**
- * Static instantiate
- *
- * @method make
- * @static
- * @param {String} condition First if constion
- * @param {String} context Context in if section
- * @return {Object IfContext} IfContext IfContext instance
- */
-IfContext.make = function(condition, context) {
-    return new IfContext(condition, context);
-};
-
-/**
- * Analyze context
- * Parse and split  else if - else - section
- *
- * @method analyze
- * @private
- * @param {String} context
- * @return {Array} ret Context list array
- */
-IfContext.prototype.analyze = function(context) {
-    var ret      = [],
-        i        = 0,
-        regex    = /\{\{else(?:\s?if\s?)?([\s\S]+?)?\}\}/,
-        contexts,
-        size;
-
-    // sub section is not exists
-    if ( ! regex.test(context) ) {
-        ret.push({
-            condition: this.condition,
-            context  : context
-        });
-        return ret;
-    }
-
-    contexts = context.split(regex);
-    ret.push({
-        condition: this.condition,
-        context  : contexts.shift().replace(/^\n/, '')
-    });
-
-    // Parsed context list format:
-    // [condtion, context, condition, context, ...]
-    size = contexts.length;
-    // context list array must have even length
-    if ( size % 2 > 0 ) {
-        throw new Error('Syntax Error: If condition id invalid.');
-    }
-
-    for ( ; i < size; i += 2 ) {
-        ret.push({
-            condition: contexts[i],
-            context  : contexts[i + 1].replace(/\n$/, '')
-        });
-    }
-
-    return ret;
-};
-
-/**
- * Execute context with aupplied condition parameters
- *
- * @method exec
- * @public
- * @param {Object} param Condition paramters
- * @return {String} parsed Parsed context section
- */
-IfContext.prototype.exec = function(param) {
-    var size   = this.contexts.length,
-        i      = 0,
-        parsed = '',
-        ctx,
-        cond;
-
-
-    for ( ; i < size; ++i ) {
-        ctx  = this.contexts[i];
-        if ( ctx.condition === void 0 ) {
-            parsed = ctx.context;
-            break;
-        }
-        cond = new Condition(ctx.condition);
-        if ( cond.acceptance(param) === true ) {
-            parsed = ctx.context;
-            break;
-        }
-    }
-
-    return parsed;
-};
-
-
-
-/**
- * Retriever Component
- *
- * @module Retriever
- */
-
-/**
  * Parser class
  *
  * @class Parser
@@ -523,7 +21,7 @@ function Parser(template) {
      * @property tpl
      * @type String
      */
-    this.tpl  = template.split('');
+    this.tpl = template.split('');
 
     /**
      * Template string length
@@ -542,44 +40,12 @@ function Parser(template) {
     this.idx = 0;
 
     /**
-     * Parser status mode
-     *
-     * @property mode
-     * @type Number
-     */
-    this.mode = Parser.STATUS_NORMAL;
-
-    /**
-     * Parsing process tree ( nestLevel = 0 only )
-     *
-     * @property processTree
-     * @type Array
-     */
-    this.processTree = [];
-
-    /**
-     * Parsed string
-     *
-     * @property parsed
-     * @type Array
-     */
-    this.parsed = [];
-
-    /**
      * Template lines
      *
      * @property line
      * @type Number
      */
     this.line = 1;
-
-    /**
-     * Parsing nest level
-     *
-     * @property nestLevel
-     * @type Number
-     */
-    this.nestLevel = 0;
 
     /**
      * Parser recognize left delimiter
@@ -596,7 +62,24 @@ function Parser(template) {
      * @type String
      */
     this.rightDelimiter = '}}';
+
+    /**
+     * Compiled JS function parser
+     *
+     * @property compiledTemplate
+     * @type Function
+     */
+    this.compiledTemplate = null;
 }
+
+/**
+ * Helpers stack
+ *
+ * @property Helpers
+ * @static
+ * @type Object
+ */
+Parser.Helpers = {};
 
 /**
  * Static instanciate
@@ -611,40 +94,29 @@ Parser.make = function(template) {
 };
 
 /**
- * Default status constant
+ * Add helper
  *
- * @property STATUS_NORMAL
- * @type Number
- * @default 0x00
+ * @method addHelper
+ * @static
+ * @param {String} name Helper name
+ * @param {Function} helper Helper implementation
  */
-Parser.STATUS_NORMAL = 0x00;
+Parser.addHelper = function(name, helper) {
+    Parser.Helpers[name] = helper;
+};
 
 /**
- * IF status constant
+ * Remove helper
  *
- * @property STATUS_IF
- * @type Number
- * @default 0x01
+ * @method remoeHelper
+ * @static
+ * @param {String} name Helper name
  */
-Parser.STATUS_IF = 0x01;
-
-/**
- * LOOP status constant
- *
- * @property STATUS_LOOP
- * @type Number
- * @default 0x10
- */
-Parser.STATUS_LOOP = 0x10;
-
-/**
- * Parsing status constant
- *
- * @property STATUS_PARSING
- * @type Number
- * @default 0x11
- */
-Parser.STATUS_PARSING = 0x11;
+Parser.removeHelper = function(name) {
+    if ( name in Parser.Helpers ) {
+        delete Parser.Helpers[name];
+    }
+};
 
 /**
  * Escape html tag/quote map
@@ -681,22 +153,6 @@ Parser.prototype._escape = function(str) {
 };
 
 /**
- * Initialize properties
- *
- * @method initialize
- * @private
- * @return {Void}
- */
-Parser.prototype.initialize = function() {
-    this.idx         = 0;
-    this.mode        = Parser.STATUS_NORMAL;
-    this.processTree = [];
-    this.parsed      = [];
-    this.line        = 1;
-    this.nestLevel   = 0;
-};
-
-/**
  * Parse template with supplied paramter
  *
  * @method parse
@@ -705,16 +161,37 @@ Parser.prototype.initialize = function() {
  * @return {String}
  */
 Parser.prototype.parse = function(param) {
-    var stack = "",
-        regex = new RegExp('^' + this.leftDelimiter + '([/])?(.+?)' + this.rightDelimiter + '$'),
-        parse = "",
-        tmp,
-        m,
-        c,
-        cc = "";
+    if ( typeof this.compiledTemplate !== 'function' ) {
+        this.compiledTemplate = this._compile();
+    }
 
-    this.initialize();
-    this.param = param || {};
+    return this.compiledTemplate.apply(this, [param || {}, Parser.Helpers]);
+};
+
+/**
+ * Compile template string to JavaScript function
+ *
+ * @method _compile
+ * @private
+ * @return {Fucntion}
+ */
+Parser.prototype._compile = function() {
+    var compile = ['var b = [];'],
+        syntax  = ['obj'],
+        parsing = false,
+        stack   = "",
+        cc      = "",
+        n       = 0,
+        i       = 0,
+        size,
+        helper,
+        args,
+        value,
+        p,
+        m,
+        f,
+        v,
+        c;
 
     while ( this.idx < this.size ) {
         // get next char
@@ -727,55 +204,117 @@ Parser.prototype.parse = function(param) {
 
         // matched left delimiter
         if ( c + this.tpl[this.idx + 1] === this.leftDelimiter ) {
-            this.mode = Parser.STATUS_PARSING;
-            stack = this.leftDelimiter;
+            stack   = '';
+            parsing = true;
+
+            if ( cc !== '' ) {
+                compile[compile.length] = 'b[b.length]=' + this.quote(cc) + ';';
+            }
+            cc = '';
             this.idx++;
         }
 
         // matched right delimiter
         else if ( c + this.tpl[this.idx + 1] === this.rightDelimiter ) {
-            if ( this.mode == Parser.STATUS_NORMAL ) {
-                throw new Error('Unexpexted right delimiter chars: ' + this.rightDelimiter + ' at line ' + this.line);
-            }
-            stack += this.rightDelimiter;
+            switch ( stack.charAt(0) ) {
 
-            m = regex.exec(stack);
-            if ( ! m[1] ) {
-                // Open new process
-                tmp = this.openProcess(m[2]);
-                if ( this.nestLevel < 2 ) {
-                    if ( tmp === false ) {
-                        parse += stack;
-                    } else if ( tmp !== "" ) {
-                        this.parsed[this.parsed.length] = tmp;
+                // helper call
+                case '#':
+                    stack  = stack.slice(1);
+                    helper = stack.split(/\s+/);
+                    args   = helper.slice(1);
+                    if ( typeof Parser.Helpers[helper[0]] === 'function' ) {
+                        size = args.length;
+                        for ( i = 0; i < size; ++i ) {
+                            args[i] = this.getPrimitiveType(args[i]);
+                            if ( args[i] === null ) {
+                                args[i] = syntax.join('.') + '.' + args[i];
+                            } else if ( typeof p === 'string' ) {
+                                args[i] = this.quote(args[i]);
+                            }
+                        }
+                        compile[compile.length] = 'b[b.length]=Helper.' + Parser.Helpers[helper[0]] + '(' + args.join(',') + ');';
+                    } else {
+                        throw new Error('Parse Error: Helper "' + helper[0] + '" is not a function.');
                     }
-                } else {
-                    parse += stack;
-                }
-            } else {
-                // Close recent process
-                tmp = this.closeProcess(m[2], parse);
-                if ( this.nestLevel < 1 ) {
-                    if ( tmp !== '' ) {
-                        this.parsed[this.parsed.length] = tmp;
+                    break;
+
+                // reserved variable
+                case '@':
+                    stack = stack.slice(1);
+                    f = true;
+                    if ( stack.charAt(0) === '%' ) {
+                        stack = stack.slice(1);
+                        f = false;
                     }
-                    parse = "";
-                } else {
-                    parse += stack;
-                }
+                    switch ( stack ) {
+                        // current value
+                        case 'data':
+                                v = syntax.join('.');
+                                break;
+
+                        // parent object
+                        case 'parent':
+                                v = syntax.slice(0, -1).join('.');
+                                break;
+                    }
+                    compile[compile.length] = ( f ) ? 'b[b.length]=this._escape(' + v + ');'
+                                                    : 'b[b.length]=' + v + ';';
+                    break;
+
+                // no-escape value
+                case '%':
+                    stack = stack.slice(1);
+                    compile[compile.length] = 'b[b.length]=' + syntax.join('.') + '.' + stack + ';';
+                    break;
+
+                // control end
+                case '/':
+                    stack = stack.slice(1);
+                    if ( stack === 'loop' ) {
+                        syntax.pop();
+                        n--;
+                    }
+                    compile[compile.length] = '}';
+                    break;
+
+                // builtin control
+                default:
+                    m = /^(if|else\sif|else|for|loop)(?:\s(.+))?/.exec(stack);
+                    if ( m !== null ) {
+                        switch ( m[1] ) {
+
+                            case 'if':
+                                compile[compile.length] = 'if(' + this._parseCondition(m[2], syntax) + '){';
+                                break;
+
+                            case 'else if':
+                                compile[compile.length] = '}else if(' + this._parseCondition(m[2], syntax) + '){';
+                                break;
+
+                            case 'else':
+                                compile[compile.length] = '}else{';
+                                break;
+
+                            case 'loop':
+                            case 'for':
+                                compile[compile.length] = 'for(var i' + n + '=0,size' + n + '=' + syntax.join('.') + '.' + m[2] + '.length; i' + n + '<size' + n + '; ++i' + n + '){';
+                                syntax.push(m[2] + '[i' + n++ + ']');
+                                break;
+                        }
+                    } else {
+                        compile[compile.length] = 'b[b.length]=this._esacpe(' + syntax.join('.') + '.' + stack + ');';
+                    }
+                    break;
             }
-            stack = "";
+            parsing = false;
             this.idx++;
         }
 
-        else if ( this.mode === Parser.STATUS_PARSING ) {
+        else if ( parsing ) {
             stack += c;
-        }
-        else if ( this.mode === Parser.STATUS_IF || this.mode === Parser.STATUS_LOOP ) {
-            parse += c;
-        }
-        else {
-            this.parsed[this.parsed.length] = c;
+        } else {
+            cc += c;
         }
 
         if ( c === "\n" ) {
@@ -785,142 +324,86 @@ Parser.prototype.parse = function(param) {
         ++this.idx;
     }
 
-    // join and trim linefeed / space
-    return this.parsed.join('').replace(/^[\n\s]+|[\n\s]+$/, '');
+    compile[compile.length] = 'return b.join(\'\');';
 
+    return new Function('obj', 'Helpers', compile.join(''));
 };
 
 /**
- * Open new process
+ * Quote Inner function string
  *
- * @method openProcess
+ * @method quote
  * @private
- * @param {String} mode Section string
- * @return {Mixed}
+ * @param {String} str quote string
+ * @return {String} quoted string
  */
-Parser.prototype.openProcess = function(mode) {
-    var val = "";
+Parser.prototype.quote = function(str) {
+    str = str.replace("\n", '\\n')
+             .replace("\t", '\\t')
+             .replace("\r", '\\r')
+             .replace("'", "\'");
 
-    if ( /^if\s/.test(mode) ) {
-        this.mode = Parser.STATUS_IF;
-        if ( this.nestLevel === 0 ) {
-            this.processTree.push({
-                mode: this.mode,
-                condition: mode.replace(/^if\s(.+?)$/, '$1')
-            });
-        }
-        this.nestLevel++;
-    } else if ( /^else/.test(mode) ) {
-        val = false;
-        this.mode = Parser.STATUS_IF;
-    } else if ( /^loop/.test(mode) ) {
-        if ( this.nestLevel === 0 ) {
-            this.mode = Parser.STATUS_LOOP;
-            this.processTree.push({
-                mode: this.mode,
-                condition: mode.replace(/^loop\s(.+?)$/, '$1')
-            });
-        }
-        this.nestLevel++;
-    } else {
-        if ( this.nestLevel === 0 ) {
-            val = this.getRecursiveValue(mode, this.param);
-            val = this._escape(val);
-            this.mode = Parser.STATUS_NORMAL;
-        } else {
-            val = false;
-        }
-    }
-
-    return val;
+    return "'" + str + "'";
 };
 
 /**
- * Close recent process
+ * Parse If condition string
  *
- * @method closeProcess
+ * @method _parseCondition
  * @private
- * @param {String} mode process string
- * @param {String} context parsing context string
+ * @param {String} condition Condition string
+ * @param {Array} syntax Current syntax scope
  * @return {String}
  */
-Parser.prototype.closeProcess = function(mode, context) {
-    var proc,
-        parser,
-        list,
-        size,
-        index,
-        stack = [],
-        piece = '',
-        i     = 0;
+Parser.prototype._parseCondition = function(condition, syntax) {
+    var token  = condition.replace(/([><=!&\|\/\-\+\*]{,3}?)/g, ' $1 '),
+        tokens = token.split(' '),
+        size   = tokens.length,
+        i      = 0,
+        cond   = [],
+        t,
+        p;
 
-    this.nestLevel--;
-    this.mode = Parser.STATUS_NORMAL;
-
-    switch ( mode ) {
-        case 'if':
-            if ( this.nestLevel === 0 ) {
-                proc   = this.processTree.pop();
-                parser = new IfContext(proc.condition, context);
-                piece  = parser.exec(this.param);
-                piece  = Parser.make(piece).parse(this.param);
-            } else {
-                piece = context;
+    // filter and format conditions
+    for ( ; i < size; ++i ) {
+        if ( tokens[i] === '' ) {
+            continue;
+        }
+        t = tokens[i].trim();
+        if ( /^[><=!&\|\/\-\+\*]{1,3}$/.test(t) ) {
+            cond[cond.length] = t;
+        } else {
+            p = this.getPrimitiveType(t);
+            if ( p === null ) {
+                cond[cond.length] = syntax.join('.') + '.' + t;
+            } else if ( typeof p === 'number' ) {
+                cond[cond.length] = p;
+            } else if ( typeof p === 'string' ) {
+                cond[cond.length] = this.quote(p);
             }
-            break;
-
-        case 'loop':
-            if ( this.nestLevel === 0 ) {
-                proc = this.processTree.pop();
-                list = this.getRecursiveValue(proc.condition, this.param) || [];
-
-                size = list.length;
-                for ( ; i < size; ++i ) {
-
-                    // Create assign object
-                    if ( Object.prototype.toString.call(list[i]) === '[object Object]' ) {
-                        index = list[i];
-                    } else {
-                        index = {"@data": list[i]};
-                    }
-                    index["@parent"] = this.param;
-                    stack[stack.length] = Parser.make(context).parse(index).replace(/^[\n\s]+|[\n\s]+$/, '');
-                }
-                piece = stack.join('');
-            } else {
-                piece = context;
-            }
-            break;
+        }
     }
-
-    return piece;
+    return cond.join(' ');
 };
 
 /**
- * Get deep ojbect value at dot syntaxed
+ * Try to get value as JavaScript primitive type
  *
- * @method getRecursiveValue
+ * @method getPrimitiveType
  * @private
- * @param {String} key property key name
- * @param {Object} param Parameter Object
- * @return {Mixed} value/null
+ * @param {String} val Variable string
+ * @return {Mixed}
  */
-Parser.prototype.getRecursiveValue = function(key, param) {
-    var point = key.indexOf('.'),
-        k;
+Parser.prototype.getPrimitiveType = function(val) {
+    var m;
 
-    // key has not contain dot
-    if ( point === -1 ) {
-        return ( key in param ) ? param[key] : null;
+    if ( null !== (m = /^['"](.+?)['"]$/.exec(val)) ) {
+        return m[1];
+    } else if ( null !== (m = /^([0-9\.]+)$/.exec(val)) ) {
+        return ( m[1].indexOf('.') !== -1 ) ? parseFloat(m[1]) : parseInt(m[1], 10);
     }
 
-    k = key.slice(0, point);
-
-    if ( ! ( k in param ) || typeof param[k] !== 'object' ) {
-        return null;
-    }
-
-    return this.getRecursiveValue(key.slice(++point), param[k]);
+    return null;
 };
 
 
