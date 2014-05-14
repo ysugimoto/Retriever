@@ -382,7 +382,7 @@ Condition.prototype._compare = function() {
 /**
  * If context parser
  *
- * @class Ifcontext
+ * @class IfContext
  * @constructor
  * @param {String} condition First if constion
  * @param {String} context Context in if section
@@ -511,7 +511,7 @@ IfContext.prototype.exec = function(param) {
 /**
  * Parser class
  *
- * @class parser
+ * @class Parser
  * @constructor
  * @param {String} template Template string
  * @author Yoshiaki Sugimoto <sugimoto@wnotes.net>
@@ -760,7 +760,6 @@ Parser.prototype.parse = function(param) {
         }
         else {
             this.parsed[this.parsed.length] = c;
-            console.log(c);
         }
 
         if ( c === "\n" ) {
@@ -834,9 +833,10 @@ Parser.prototype.closeProcess = function(mode, context) {
         parser,
         list,
         size,
+        index,
         stack = [],
-        i = 0,
-        piece = '';
+        piece = '',
+        i     = 0;
 
     this.nestLevel--;
     this.mode = Parser.STATUS_NORMAL;
@@ -860,7 +860,15 @@ Parser.prototype.closeProcess = function(mode, context) {
 
                 size = list.length;
                 for ( ; i < size; ++i ) {
-                    stack[stack.length] = Parser.make(context).parse(list[i] || {}).replace(/^[\n\s]+|[\n\s]+$/, '');
+
+                    // Create assign object
+                    if ( Object.prototype.toString.call(list[i]) === '[object Object]' ) {
+                        index = list[i];
+                    } else {
+                        index = {"@data": list[i]};
+                    }
+                    index["@parent"] = this.param;
+                    stack[stack.length] = Parser.make(context).parse(index).replace(/^[\n\s]+|[\n\s]+$/, '');
                 }
                 piece = stack.join('');
             } else {
@@ -902,6 +910,6 @@ Parser.prototype.getRecursiveValue = function(key, param) {
 
 
 
-global.Retriver = Parser;
+global.Retriever = Parser;
 
 })(this);

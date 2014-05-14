@@ -1,13 +1,13 @@
 {
   "name": "Retriever",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A simple / lightweight JavaScript template engine",
   "main": "build/retriever.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/grunt-cli/bin/grunt test"
   },
   "repository": {
     "type": "git",
