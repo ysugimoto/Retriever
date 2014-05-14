@@ -18,7 +18,7 @@
             <h1 class="blue-main-title">Retriever</h1>
         </div>
         <div class="yui3-u-1-4 version project-version">
-            API Docs for: 0.2.0
+            API Docs for: 0.3.0
         </div>
     </div>
     <div id="bd" class="yui3-g">
@@ -250,7 +250,6 @@ Parser.prototype.escapeMap = {
     &quot;&#x27;&quot;: &#x27;&amp;apos;&#x27;
 };
 
-
 /**
  * Escape html tag/quote
  *
@@ -273,6 +272,22 @@ Parser.prototype._escape = function(str) {
 };
 
 /**
+ * Initialize properties
+ *
+ * @method initialize
+ * @private
+ * @return {Void}
+ */
+Parser.prototype.initialize = function() {
+    this.idx         = 0;
+    this.mode        = Parser.STATUS_NORMAL;
+    this.processTree = [];
+    this.parsed      = [];
+    this.line        = 1;
+    this.nestLevel   = 0;
+};
+
+/**
  * Parse template with supplied paramter
  *
  * @method parse
@@ -289,6 +304,7 @@ Parser.prototype.parse = function(param) {
         c,
         cc = &quot;&quot;;
 
+    this.initialize();
     this.param = param || {};
 
     while ( this.idx &lt; this.size ) {
@@ -351,7 +367,6 @@ Parser.prototype.parse = function(param) {
         }
         else {
             this.parsed[this.parsed.length] = c;
-            console.log(c);
         }
 
         if ( c === &quot;\n&quot; ) {
@@ -425,9 +440,10 @@ Parser.prototype.closeProcess = function(mode, context) {
         parser,
         list,
         size,
+        index,
         stack = [],
-        i = 0,
-        piece = &#x27;&#x27;;
+        piece = &#x27;&#x27;,
+        i     = 0;
 
     this.nestLevel--;
     this.mode = Parser.STATUS_NORMAL;
@@ -451,7 +467,15 @@ Parser.prototype.closeProcess = function(mode, context) {
 
                 size = list.length;
                 for ( ; i &lt; size; ++i ) {
-                    stack[stack.length] = Parser.make(context).parse(list[i] || {}).replace(/^[\n\s]+|[\n\s]+$/, &#x27;&#x27;);
+
+                    // Create assign object
+                    if ( Object.prototype.toString.call(list[i]) === &#x27;[object Object]&#x27; ) {
+                        index = list[i];
+                    } else {
+                        index = {&quot;@data&quot;: list[i]};
+                    }
+                    index[&quot;@parent&quot;] = this.param;
+                    stack[stack.length] = Parser.make(context).parse(index).replace(/^[\n\s]+|[\n\s]+$/, &#x27;&#x27;);
                 }
                 piece = stack.join(&#x27;&#x27;);
             } else {

@@ -2,7 +2,7 @@
     "project": {
         "name": "Retriever",
         "description": "A simple / lightweight JavaScript template engine",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "url": "https://github.com/ysugimoto/Retriever"
     },
     "files": {
@@ -718,7 +718,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 159,
+            "line": 158,
             "description": "Escape html tag/quote",
             "itemtype": "method",
             "name": "_escape",
@@ -740,7 +740,22 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 180,
+            "line": 179,
+            "description": "Initialize properties",
+            "itemtype": "method",
+            "name": "initialize",
+            "access": "private",
+            "tagname": "",
+            "return": {
+                "description": "",
+                "type": "Void"
+            },
+            "class": "Parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 195,
             "description": "Parse template with supplied paramter",
             "itemtype": "method",
             "name": "parse",
@@ -762,7 +777,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 274,
+            "line": 289,
             "description": "Open new process",
             "itemtype": "method",
             "name": "openProcess",
@@ -784,7 +799,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 319,
+            "line": 334,
             "description": "Close recent process",
             "itemtype": "method",
             "name": "closeProcess",
@@ -811,7 +826,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 371,
+            "line": 395,
             "description": "Get deep ojbect value at dot syntaxed",
             "itemtype": "method",
             "name": "getRecursiveValue",
