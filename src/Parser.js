@@ -156,10 +156,10 @@ Parser.prototype._escape = function(str) {
         return '';
     }
 
-    var map = { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;'},
-        sed = function(m) { return map[m]; };
-
-    return str.toString().replace(/([<>"'])/g, sed);
+    return (str+'').replace('<', '&lt;')
+                   .replace('>', '&gt;')
+                   .replace('"', '&quot;')
+                   .replace("'", '&apos;');
 };
 
 /**
@@ -172,21 +172,20 @@ Parser.prototype._escape = function(str) {
  */
 Parser.prototype.parse = function(param) {
     if ( typeof this.compiledTemplate !== 'function' ) {
-        this.compiledTemplate = this._compile();
+        this.compile();
     }
 
-    //console.log(this.compiledTemplate.toString());
     return this.compiledTemplate(param || {}, Parser.Helpers, this._escape);
 };
 
 /**
  * Compile template string to JavaScript function
  *
- * @method _compile
- * @private
- * @return {Fucntion}
+ * @method compile
+ * @public
+ * @return {Parser} this
  */
-Parser.prototype._compile = function() {
+Parser.prototype.compile = function() {
     var regex   = new RegExp(Parser.leftDelimiter + '([\/#@%])?(.+?)' + Parser.rightDelimiter, 'g'),
         compile = ['var b="";'],
         index   = 0,
@@ -196,7 +195,7 @@ Parser.prototype._compile = function() {
 
     while ( null !== (match = regex.exec(this.template)) ) {
         context = this.template.slice(index, match.index);
-        if ( context ) {
+        if ( context && !/^[\r\n\s]+$/.test(context) ) {
             if ( nest > 0 ) {
                 compile[compile.length] = 'b+=' + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, '')) + ';';
             } else {
@@ -253,8 +252,9 @@ Parser.prototype._compile = function() {
     }
 
     compile[compile.length] = 'return b;';
+    this.compiledTemplate = new Function('obj', 'Helper', '_e', compile.join(''));
 
-    return new Function('obj', 'Helper', '_e', compile.join(''));
+    return this;
 }
 
 /**
