@@ -388,7 +388,7 @@ Parser.prototype.quote = function(str) {
  * @return {String}
  */
 Parser.prototype._parseCondition = function(condition) {
-    var token  = condition.replace(/([><=!&\|\/\-\+\*]{,3}?)/g, ' $1 '),
+    var token  = condition.replace(/(!|>=?|<=?|={2,3}|[^\+]\+|[^\-]\-|\*|&{2}|\|{2})/g, ' $1 '),
         tokens = token.split(/\s+/),
         size   = tokens.length,
         i      = 0,
@@ -398,11 +398,8 @@ Parser.prototype._parseCondition = function(condition) {
 
     // filter and format conditions
     for ( ; i < size; ++i ) {
-        if ( tokens[i] === '' ) {
-            continue;
-        }
         t = tokens[i];
-        if ( /^[><=!&\|\/\-\+\*]{1,3}$/.test(t) ) {
+        if ( /^(!|>=?|<=?|={1,3}|\+|\-|\*|&{2}|\|{2})$/.test(t) ) {
             cond[cond.length] = t;
         } else {
             p = this.getPrimitiveType(t);
