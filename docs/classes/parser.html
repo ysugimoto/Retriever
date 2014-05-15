@@ -40,12 +40,6 @@
         <div id="api-tabview-panel">
             <ul id="api-classes" class="apis classes">
             
-                <li><a href="../classes/BNF.html">BNF</a></li>
-            
-                <li><a href="../classes/Condition.html">Condition</a></li>
-            
-                <li><a href="../classes/IfContext.html">IfContext</a></li>
-            
                 <li><a href="../classes/Parser.html">Parser</a></li>
             
             </ul>
@@ -246,6 +240,34 @@
                     <ul class="index-list methods">
                         
                             <li class="index-item method private">
+                                <a href="#method__compile">_compile</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method private">
+                                <a href="#method__compileBuiltInControl">_compileBuiltInControl</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method private">
+                                <a href="#method__compileHelper">_compileHelper</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method private">
+                                <a href="#method__compileReservedVars">_compileReservedVars</a>
+
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method private">
                                 <a href="#method__escape">_escape</a>
 
                                 
@@ -253,21 +275,32 @@
                             </li>
                         
                             <li class="index-item method private">
-                                <a href="#method_closeProcess">closeProcess</a>
+                                <a href="#method__parseCondition">_parseCondition</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method private">
-                                <a href="#method_getRecursiveValue">getRecursiveValue</a>
+                            <li class="index-item method">
+                                <a href="#method_addHelper">addHelper</a>
 
+                                
+                                    <span class="flag static">static</span>
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_addHelperObject">addHelperObject</a>
+
+                                
+                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
                         
                             <li class="index-item method private">
-                                <a href="#method_initialize">initialize</a>
+                                <a href="#method_getPrimitiveType">getPrimitiveType</a>
 
                                 
                                 
@@ -282,16 +315,25 @@
                                 
                             </li>
                         
-                            <li class="index-item method private">
-                                <a href="#method_openProcess">openProcess</a>
+                            <li class="index-item method public">
+                                <a href="#method_parse">parse</a>
 
                                 
                                 
                             </li>
                         
-                            <li class="index-item method public">
-                                <a href="#method_parse">parse</a>
+                            <li class="index-item method private">
+                                <a href="#method_quote">quote</a>
 
+                                
+                                
+                            </li>
+                        
+                            <li class="index-item method">
+                                <a href="#method_setDelimiter">setDelimiter</a>
+
+                                
+                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
@@ -307,15 +349,17 @@
                     <ul class="index-list properties">
                         
                             <li class="index-item property">
-                                <a href="#property_escapeMap">escapeMap</a>
+                                <a href="#property_compiledTemplate">compiledTemplate</a>
 
                                 
                                 
                             </li>
                         
                             <li class="index-item property">
-                                <a href="#property_idx">idx</a>
+                                <a href="#property_Helpers">Helpers</a>
 
+                                
+                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
@@ -328,36 +372,10 @@
                             </li>
                         
                             <li class="index-item property">
-                                <a href="#property_line">line</a>
+                                <a href="#property_leftDelimiter">leftDelimiter</a>
 
                                 
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_mode">mode</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_nestLevel">nestLevel</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_parsed">parsed</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_processTree">processTree</a>
-
+                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
@@ -370,36 +388,10 @@
                             </li>
                         
                             <li class="index-item property">
-                                <a href="#property_size">size</a>
+                                <a href="#property_rightDelimiter">rightDelimiter</a>
 
                                 
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_STATUS_IF">STATUS_IF</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_STATUS_LOOP">STATUS_LOOP</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_STATUS_NORMAL">STATUS_NORMAL</a>
-
-                                
-                                
-                            </li>
-                        
-                            <li class="index-item property">
-                                <a href="#property_STATUS_PARSING">STATUS_PARSING</a>
-
+                                    <span class="flag static">static</span>
                                 
                                 
                             </li>
@@ -425,6 +417,455 @@
                 <h2 class="off-left">Methods</h2>
 
                 
+                    <div id="method__compile" class="method item private">
+  <h3 class="blue-method-name">_compile</h3>
+
+  <div class="meta method-meta">
+    
+      
+        
+      <p>
+        
+          Defined in
+        
+      
+    
+    
+      <a href="../files/src_Parser.js.html#l170"><code>src&#x2F;Parser.js:170</code></a>
+    
+  </p>
+
+
+    
+
+    
+  </div>
+
+  <h3>Syntax</h3>
+  <div class="blue-method-syntax">
+  <h3 class="name"><code>_compile</code></h3>
+
+    
+        <span class="paren">()</span>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">Fucntion</span>
+        </span>
+    
+
+    
+
+    
+        <span class="flag private">private</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+  </div>
+    <div class="description">
+      <h3>Summary</h3>
+        <p>Compile template string to JavaScript function</p>
+
+    </div>
+
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+              
+                <span class="type">Fucntion</span>:
+              
+              
+
+
+            </div>
+        </div>
+    
+
+    
+
+    
+
+</div>
+
+                
+                    <div id="method__compileBuiltInControl" class="method item private">
+  <h3 class="blue-method-name">_compileBuiltInControl</h3>
+
+  <div class="meta method-meta">
+    
+      
+        
+      <p>
+        
+          Defined in
+        
+      
+    
+    
+      <a href="../files/src_Parser.js.html#l327"><code>src&#x2F;Parser.js:327</code></a>
+    
+  </p>
+
+
+    
+
+    
+  </div>
+
+  <h3>Syntax</h3>
+  <div class="blue-method-syntax">
+  <h3 class="name"><code>_compileBuiltInControl</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>sentence</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">String</span>
+        </span>
+    
+
+    
+
+    
+        <span class="flag private">private</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+  </div>
+    <div class="description">
+      <h3>Summary</h3>
+        <p>Compile built-in control</p>
+
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">sentence</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>built-in control senetence ( e.g if/else if/else/loop )</p>
+
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+              
+                <span class="type">String</span>:
+              
+              
+                <div class="blue-return-desc">
+                    <p>Compile String</p>
+
+                </div>
+              
+
+
+            </div>
+        </div>
+    
+
+    
+
+    
+
+</div>
+
+                
+                    <div id="method__compileHelper" class="method item private">
+  <h3 class="blue-method-name">_compileHelper</h3>
+
+  <div class="meta method-meta">
+    
+      
+        
+      <p>
+        
+          Defined in
+        
+      
+    
+    
+      <a href="../files/src_Parser.js.html#l248"><code>src&#x2F;Parser.js:248</code></a>
+    
+  </p>
+
+
+    
+
+    
+  </div>
+
+  <h3>Syntax</h3>
+  <div class="blue-method-syntax">
+  <h3 class="name"><code>_compileHelper</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>sentence</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">String</span>
+        </span>
+    
+
+    
+
+    
+        <span class="flag private">private</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+  </div>
+    <div class="description">
+      <h3>Summary</h3>
+        <p>Compile helper call sentence</p>
+
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">sentence</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Helper call senetence ( e.g #someHelper arg1 arg2 arg3 )</p>
+
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+              
+                <span class="type">String</span>:
+              
+              
+                <div class="blue-return-desc">
+                    <p>Compile String</p>
+
+                </div>
+              
+
+
+            </div>
+        </div>
+    
+
+    
+
+    
+
+</div>
+
+                
+                    <div id="method__compileReservedVars" class="method item private">
+  <h3 class="blue-method-name">_compileReservedVars</h3>
+
+  <div class="meta method-meta">
+    
+      
+        
+      <p>
+        
+          Defined in
+        
+      
+    
+    
+      <a href="../files/src_Parser.js.html#l280"><code>src&#x2F;Parser.js:280</code></a>
+    
+  </p>
+
+
+    
+
+    
+  </div>
+
+  <h3>Syntax</h3>
+  <div class="blue-method-syntax">
+  <h3 class="name"><code>_compileReservedVars</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>sentence</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">String</span>
+        </span>
+    
+
+    
+
+    
+        <span class="flag private">private</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+  </div>
+    <div class="description">
+      <h3>Summary</h3>
+        <p>Compile reserved word sentence</p>
+
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">sentence</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>reserved work senetence ( e.g @word )</p>
+
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+              
+                <span class="type">String</span>:
+              
+              
+                <div class="blue-return-desc">
+                    <p>Compile String</p>
+
+                </div>
+              
+
+
+            </div>
+        </div>
+    
+
+    
+
+    
+
+</div>
+
+                
                     <div id="method__escape" class="method item private">
   <h3 class="blue-method-name">_escape</h3>
 
@@ -439,7 +880,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l158"><code>src&#x2F;Parser.js:158</code></a>
+      <a href="../files/src_Parser.js.html#l134"><code>src&#x2F;Parser.js:134</code></a>
     
   </p>
 
@@ -541,8 +982,8 @@
 </div>
 
                 
-                    <div id="method_closeProcess" class="method item private">
-  <h3 class="blue-method-name">closeProcess</h3>
+                    <div id="method__parseCondition" class="method item private">
+  <h3 class="blue-method-name">_parseCondition</h3>
 
   <div class="meta method-meta">
     
@@ -555,7 +996,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l334"><code>src&#x2F;Parser.js:334</code></a>
+      <a href="../files/src_Parser.js.html#l382"><code>src&#x2F;Parser.js:382</code></a>
     
   </p>
 
@@ -567,7 +1008,7 @@
 
   <h3>Syntax</h3>
   <div class="blue-method-syntax">
-  <h3 class="name"><code>closeProcess</code></h3>
+  <h3 class="name"><code>_parseCondition</code></h3>
 
     
         <div class="args">
@@ -575,13 +1016,7 @@
             
                 <li class="arg">
                     
-                        <code>mode</code>
-                    
-                </li>
-            
-                <li class="arg">
-                    
-                        <code>context</code>
+                        <code>condition</code>
                     
                 </li>
             
@@ -612,7 +1047,7 @@
   </div>
     <div class="description">
       <h3>Summary</h3>
-        <p>Close recent process</p>
+        <p>Parse If condition string</p>
 
     </div>
 
@@ -624,30 +1059,14 @@
             
                 <li class="param">
                     
-                        <code class="param-name">mode</code>
+                        <code class="param-name">condition</code>
                         <span class="type">String</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>process string</p>
-
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name">context</code>
-                        <span class="type">String</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>parsing context string</p>
+                        <p>Condition string</p>
 
                     </div>
 
@@ -680,8 +1099,8 @@
 </div>
 
                 
-                    <div id="method_getRecursiveValue" class="method item private">
-  <h3 class="blue-method-name">getRecursiveValue</h3>
+                    <div id="method_addHelper" class="method item">
+  <h3 class="blue-method-name">addHelper</h3>
 
   <div class="meta method-meta">
     
@@ -694,7 +1113,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l395"><code>src&#x2F;Parser.js:395</code></a>
+      <a href="../files/src_Parser.js.html#l105"><code>src&#x2F;Parser.js:105</code></a>
     
   </p>
 
@@ -706,7 +1125,7 @@
 
   <h3>Syntax</h3>
   <div class="blue-method-syntax">
-  <h3 class="name"><code>getRecursiveValue</code></h3>
+  <h3 class="name"><code>addHelper</code></h3>
 
     
         <div class="args">
@@ -714,13 +1133,229 @@
             
                 <li class="arg">
                     
-                        <code>key</code>
+                        <code>name</code>
                     
                 </li>
             
                 <li class="arg">
                     
-                        <code>param</code>
+                        <code>helper</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+  </div>
+    <div class="description">
+      <h3>Summary</h3>
+        <p>Add helper</p>
+
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">name</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Helper name</p>
+
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">helper</code>
+                        <span class="type">Function</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Helper implementation</p>
+
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+
+    
+
+</div>
+
+                
+                    <div id="method_addHelperObject" class="method item">
+  <h3 class="blue-method-name">addHelperObject</h3>
+
+  <div class="meta method-meta">
+    
+      
+        
+      <p>
+        
+          Defined in
+        
+      
+    
+    
+      <a href="../files/src_Parser.js.html#l117"><code>src&#x2F;Parser.js:117</code></a>
+    
+  </p>
+
+
+    
+
+    
+  </div>
+
+  <h3>Syntax</h3>
+  <div class="blue-method-syntax">
+  <h3 class="name"><code>addHelperObject</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>helpers</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+  </div>
+    <div class="description">
+      <h3>Summary</h3>
+        <p>Add helper from Object</p>
+
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">helpers</code>
+                        <span class="type">Object</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Helper definitions hash</p>
+
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+
+    
+
+</div>
+
+                
+                    <div id="method_getPrimitiveType" class="method item private">
+  <h3 class="blue-method-name">getPrimitiveType</h3>
+
+  <div class="meta method-meta">
+    
+      
+        
+      <p>
+        
+          Defined in
+        
+      
+    
+    
+      <a href="../files/src_Parser.js.html#l418"><code>src&#x2F;Parser.js:418</code></a>
+    
+  </p>
+
+
+    
+
+    
+  </div>
+
+  <h3>Syntax</h3>
+  <div class="blue-method-syntax">
+  <h3 class="name"><code>getPrimitiveType</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>val</code>
                     
                 </li>
             
@@ -751,7 +1386,7 @@
   </div>
     <div class="description">
       <h3>Summary</h3>
-        <p>Get deep ojbect value at dot syntaxed</p>
+        <p>Try to get value as JavaScript primitive type</p>
 
     </div>
 
@@ -763,30 +1398,14 @@
             
                 <li class="param">
                     
-                        <code class="param-name">key</code>
+                        <code class="param-name">val</code>
                         <span class="type">String</span>
                     
 
                     
 
                     <div class="param-description">
-                        <p>property key name</p>
-
-                    </div>
-
-                    
-                </li>
-            
-                <li class="param">
-                    
-                        <code class="param-name">param</code>
-                        <span class="type">Object</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>Parameter Object</p>
+                        <p>Variable string</p>
 
                     </div>
 
@@ -804,94 +1423,6 @@
             <div class="returns-description">
               
                 <span class="type">Mixed</span>:
-              
-              
-                <div class="blue-return-desc">
-                    <p>value/null</p>
-
-                </div>
-              
-
-
-            </div>
-        </div>
-    
-
-    
-
-    
-
-</div>
-
-                
-                    <div id="method_initialize" class="method item private">
-  <h3 class="blue-method-name">initialize</h3>
-
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l179"><code>src&#x2F;Parser.js:179</code></a>
-    
-  </p>
-
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-  <h3 class="name"><code>initialize</code></h3>
-
-    
-        <span class="paren">()</span>
-    
-
-    
-        <span class="returns-inline">
-            <span class="type">Void</span>
-        </span>
-    
-
-    
-
-    
-        <span class="flag private">private</span>
-    
-
-    
-
-    
-
-    
-
-    
-
-  </div>
-    <div class="description">
-      <h3>Summary</h3>
-        <p>Initialize properties</p>
-
-    </div>
-
-    
-
-    
-        <div class="returns">
-            <h4>Returns:</h4>
-
-            <div class="returns-description">
-              
-                <span class="type">Void</span>:
               
               
 
@@ -921,7 +1452,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l97"><code>src&#x2F;Parser.js:97</code></a>
+      <a href="../files/src_Parser.js.html#l93"><code>src&#x2F;Parser.js:93</code></a>
     
   </p>
 
@@ -1029,123 +1560,6 @@
 </div>
 
                 
-                    <div id="method_openProcess" class="method item private">
-  <h3 class="blue-method-name">openProcess</h3>
-
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l289"><code>src&#x2F;Parser.js:289</code></a>
-    
-  </p>
-
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-  <h3 class="name"><code>openProcess</code></h3>
-
-    
-        <div class="args">
-            <span class="paren">(</span><ul class="args-list inline commas">
-            
-                <li class="arg">
-                    
-                        <code>mode</code>
-                    
-                </li>
-            
-            </ul><span class="paren">)</span>
-        </div>
-    
-
-    
-        <span class="returns-inline">
-            <span class="type">Mixed</span>
-        </span>
-    
-
-    
-
-    
-        <span class="flag private">private</span>
-    
-
-    
-
-    
-
-    
-
-    
-
-  </div>
-    <div class="description">
-      <h3>Summary</h3>
-        <p>Open new process</p>
-
-    </div>
-
-    
-        <div class="params">
-            <h4>Parameters:</h4>
-
-            <ul class="params-list">
-            
-                <li class="param">
-                    
-                        <code class="param-name">mode</code>
-                        <span class="type">String</span>
-                    
-
-                    
-
-                    <div class="param-description">
-                        <p>Section string</p>
-
-                    </div>
-
-                    
-                </li>
-            
-            </ul>
-        </div>
-    
-
-    
-        <div class="returns">
-            <h4>Returns:</h4>
-
-            <div class="returns-description">
-              
-                <span class="type">Mixed</span>:
-              
-              
-
-
-            </div>
-        </div>
-    
-
-    
-
-    
-
-</div>
-
-                
                     <div id="method_parse" class="method item public">
   <h3 class="blue-method-name">parse</h3>
 
@@ -1160,7 +1574,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l195"><code>src&#x2F;Parser.js:195</code></a>
+      <a href="../files/src_Parser.js.html#l153"><code>src&#x2F;Parser.js:153</code></a>
     
   </p>
 
@@ -1263,17 +1677,9 @@
 </div>
 
                 
-            </div>
-        
+                    <div id="method_quote" class="method item private">
+  <h3 class="blue-method-name">quote</h3>
 
-        
-            <div id="properties" class="api-class-tabpanel">
-                <h2 class="off-left">Properties</h2>
-
-                
-                    <div id="property_escapeMap" class="property item">
-
-  <h3 class="blue-method-name">escapeMap</h3>
   <div class="meta method-meta">
     
       
@@ -1285,7 +1691,259 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l145"><code>src&#x2F;Parser.js:145</code></a>
+      <a href="../files/src_Parser.js.html#l364"><code>src&#x2F;Parser.js:364</code></a>
+    
+  </p>
+
+
+    
+
+    
+  </div>
+
+  <h3>Syntax</h3>
+  <div class="blue-method-syntax">
+  <h3 class="name"><code>quote</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>str</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+        <span class="returns-inline">
+            <span class="type">String</span>
+        </span>
+    
+
+    
+
+    
+        <span class="flag private">private</span>
+    
+
+    
+
+    
+
+    
+
+    
+
+  </div>
+    <div class="description">
+      <h3>Summary</h3>
+        <p>Quote Inner function string</p>
+
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">str</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>quote string</p>
+
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+        <div class="returns">
+            <h4>Returns:</h4>
+
+            <div class="returns-description">
+              
+                <span class="type">String</span>:
+              
+              
+                <div class="blue-return-desc">
+                    <p>quoted string</p>
+
+                </div>
+              
+
+
+            </div>
+        </div>
+    
+
+    
+
+    
+
+</div>
+
+                
+                    <div id="method_setDelimiter" class="method item">
+  <h3 class="blue-method-name">setDelimiter</h3>
+
+  <div class="meta method-meta">
+    
+      
+        
+      <p>
+        
+          Defined in
+        
+      
+    
+    
+      <a href="../files/src_Parser.js.html#l71"><code>src&#x2F;Parser.js:71</code></a>
+    
+  </p>
+
+
+    
+
+    
+  </div>
+
+  <h3>Syntax</h3>
+  <div class="blue-method-syntax">
+  <h3 class="name"><code>setDelimiter</code></h3>
+
+    
+        <div class="args">
+            <span class="paren">(</span><ul class="args-list inline commas">
+            
+                <li class="arg">
+                    
+                        <code>left</code>
+                    
+                </li>
+            
+                <li class="arg">
+                    
+                        <code>right</code>
+                    
+                </li>
+            
+            </ul><span class="paren">)</span>
+        </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <span class="flag static">static</span>
+    
+
+    
+
+    
+
+  </div>
+    <div class="description">
+      <h3>Summary</h3>
+        <p>Set delimiter</p>
+
+    </div>
+
+    
+        <div class="params">
+            <h4>Parameters:</h4>
+
+            <ul class="params-list">
+            
+                <li class="param">
+                    
+                        <code class="param-name">left</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Left delimiter</p>
+
+                    </div>
+
+                    
+                </li>
+            
+                <li class="param">
+                    
+                        <code class="param-name">right</code>
+                        <span class="type">String</span>
+                    
+
+                    
+
+                    <div class="param-description">
+                        <p>Right delimiter</p>
+
+                    </div>
+
+                    
+                </li>
+            
+            </ul>
+        </div>
+    
+
+    
+
+    
+
+    
+
+</div>
+
+                
+            </div>
+        
+
+        
+            <div id="properties" class="api-class-tabpanel">
+                <h2 class="off-left">Properties</h2>
+
+                
+                    <div id="property_compiledTemplate" class="property item">
+
+  <h3 class="blue-method-name">compiledTemplate</h3>
+  <div class="meta method-meta">
+    
+      
+        
+      <p>
+        
+          Defined in
+        
+      
+    
+    
+      <a href="../files/src_Parser.js.html#l44"><code>src&#x2F;Parser.js:44</code></a>
     
   </p>
 
@@ -1296,8 +1954,8 @@
 
   <h3>Syntax</h3>
   <div class="blue-method-syntax">
-    <h3 class="name"><code>escapeMap</code></h3>
-    <span class="type">Object</span>
+    <h3 class="name"><code>compiledTemplate</code></h3>
+    <span class="type">Function</span>
 
     
 
@@ -1311,7 +1969,7 @@
 
     <div class="description">
       <h3>Summary</h3>
-        <p>Escape html tag/quote map</p>
+        <p>Compiled JS function parser</p>
 
     </div>
 
@@ -1326,9 +1984,9 @@
 </div>
 
                 
-                    <div id="property_idx" class="property item">
+                    <div id="property_Helpers" class="property item">
 
-  <h3 class="blue-method-name">idx</h3>
+  <h3 class="blue-method-name">Helpers</h3>
   <div class="meta method-meta">
     
       
@@ -1340,7 +1998,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l32"><code>src&#x2F;Parser.js:32</code></a>
+      <a href="../files/src_Parser.js.html#l84"><code>src&#x2F;Parser.js:84</code></a>
     
   </p>
 
@@ -1351,8 +2009,8 @@
 
   <h3>Syntax</h3>
   <div class="blue-method-syntax">
-    <h3 class="name"><code>idx</code></h3>
-    <span class="type">Number</span>
+    <h3 class="name"><code>Helpers</code></h3>
+    <span class="type">Object</span>
 
     
 
@@ -1360,13 +2018,15 @@
 
     
 
+    
+        <span class="flag static">static</span>
     
 
     </div>
 
     <div class="description">
       <h3>Summary</h3>
-        <p>Template string index</p>
+        <p>Helpers stack</p>
 
     </div>
 
@@ -1395,7 +2055,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l80"><code>src&#x2F;Parser.js:80</code></a>
+      <a href="../files/src_Parser.js.html#l24"><code>src&#x2F;Parser.js:24</code></a>
     
   </p>
 
@@ -1436,9 +2096,9 @@
 </div>
 
                 
-                    <div id="property_line" class="property item">
+                    <div id="property_leftDelimiter" class="property item">
 
-  <h3 class="blue-method-name">line</h3>
+  <h3 class="blue-method-name">leftDelimiter</h3>
   <div class="meta method-meta">
     
       
@@ -1450,7 +2110,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l64"><code>src&#x2F;Parser.js:64</code></a>
+      <a href="../files/src_Parser.js.html#l53"><code>src&#x2F;Parser.js:53</code></a>
     
   </p>
 
@@ -1461,8 +2121,8 @@
 
   <h3>Syntax</h3>
   <div class="blue-method-syntax">
-    <h3 class="name"><code>line</code></h3>
-    <span class="type">Number</span>
+    <h3 class="name"><code>leftDelimiter</code></h3>
+    <span class="type">String</span>
 
     
 
@@ -1471,232 +2131,14 @@
     
 
     
-
-    </div>
-
-    <div class="description">
-      <h3>Summary</h3>
-        <p>Template lines</p>
-
-    </div>
-
-    
-
-    
-
-  
-
-  
-
-</div>
-
-                
-                    <div id="property_mode" class="property item">
-
-  <h3 class="blue-method-name">mode</h3>
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l40"><code>src&#x2F;Parser.js:40</code></a>
-    
-  </p>
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-    <h3 class="name"><code>mode</code></h3>
-    <span class="type">Number</span>
-
-    
-
-    
-
-    
-
+        <span class="flag static">static</span>
     
 
     </div>
 
     <div class="description">
       <h3>Summary</h3>
-        <p>Parser status mode</p>
-
-    </div>
-
-    
-
-    
-
-  
-
-  
-
-</div>
-
-                
-                    <div id="property_nestLevel" class="property item">
-
-  <h3 class="blue-method-name">nestLevel</h3>
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l72"><code>src&#x2F;Parser.js:72</code></a>
-    
-  </p>
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-    <h3 class="name"><code>nestLevel</code></h3>
-    <span class="type">Number</span>
-
-    
-
-    
-
-    
-
-    
-
-    </div>
-
-    <div class="description">
-      <h3>Summary</h3>
-        <p>Parsing nest level</p>
-
-    </div>
-
-    
-
-    
-
-  
-
-  
-
-</div>
-
-                
-                    <div id="property_parsed" class="property item">
-
-  <h3 class="blue-method-name">parsed</h3>
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l56"><code>src&#x2F;Parser.js:56</code></a>
-    
-  </p>
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-    <h3 class="name"><code>parsed</code></h3>
-    <span class="type">Array</span>
-
-    
-
-    
-
-    
-
-    
-
-    </div>
-
-    <div class="description">
-      <h3>Summary</h3>
-        <p>Parsed string</p>
-
-    </div>
-
-    
-
-    
-
-  
-
-  
-
-</div>
-
-                
-                    <div id="property_processTree" class="property item">
-
-  <h3 class="blue-method-name">processTree</h3>
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l48"><code>src&#x2F;Parser.js:48</code></a>
-    
-  </p>
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-    <h3 class="name"><code>processTree</code></h3>
-    <span class="type">Array</span>
-
-    
-
-    
-
-    
-
-    
-
-    </div>
-
-    <div class="description">
-      <h3>Summary</h3>
-        <p>Parsing process tree ( nestLevel = 0 only )</p>
+        <p>Left delimiter string</p>
 
     </div>
 
@@ -1725,7 +2167,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l88"><code>src&#x2F;Parser.js:88</code></a>
+      <a href="../files/src_Parser.js.html#l32"><code>src&#x2F;Parser.js:32</code></a>
     
   </p>
 
@@ -1766,9 +2208,9 @@
 </div>
 
                 
-                    <div id="property_size" class="property item">
+                    <div id="property_rightDelimiter" class="property item">
 
-  <h3 class="blue-method-name">size</h3>
+  <h3 class="blue-method-name">rightDelimiter</h3>
   <div class="meta method-meta">
     
       
@@ -1780,7 +2222,7 @@
       
     
     
-      <a href="../files/src_Parser.js.html#l24"><code>src&#x2F;Parser.js:24</code></a>
+      <a href="../files/src_Parser.js.html#l62"><code>src&#x2F;Parser.js:62</code></a>
     
   </p>
 
@@ -1791,8 +2233,8 @@
 
   <h3>Syntax</h3>
   <div class="blue-method-syntax">
-    <h3 class="name"><code>size</code></h3>
-    <span class="type">Number</span>
+    <h3 class="name"><code>rightDelimiter</code></h3>
+    <span class="type">String</span>
 
     
 
@@ -1801,243 +2243,17 @@
     
 
     
-
-    </div>
-
-    <div class="description">
-      <h3>Summary</h3>
-        <p>Template string length</p>
-
-    </div>
-
-    
-
-    
-
-  
-
-  
-
-</div>
-
-                
-                    <div id="property_STATUS_IF" class="property item">
-
-  <h3 class="blue-method-name">STATUS_IF</h3>
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l118"><code>src&#x2F;Parser.js:118</code></a>
-    
-  </p>
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-    <h3 class="name"><code>STATUS_IF</code></h3>
-    <span class="type">Number</span>
-
-    
-
-    
-
-    
-
+        <span class="flag static">static</span>
     
 
     </div>
 
     <div class="description">
       <h3>Summary</h3>
-        <p>IF status constant</p>
+        <p>Right delimiter string</p>
 
     </div>
 
-    
-        <p><strong>Default:</strong> 0x01</p>
-    
-
-    
-
-  
-
-  
-
-</div>
-
-                
-                    <div id="property_STATUS_LOOP" class="property item">
-
-  <h3 class="blue-method-name">STATUS_LOOP</h3>
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l127"><code>src&#x2F;Parser.js:127</code></a>
-    
-  </p>
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-    <h3 class="name"><code>STATUS_LOOP</code></h3>
-    <span class="type">Number</span>
-
-    
-
-    
-
-    
-
-    
-
-    </div>
-
-    <div class="description">
-      <h3>Summary</h3>
-        <p>LOOP status constant</p>
-
-    </div>
-
-    
-        <p><strong>Default:</strong> 0x10</p>
-    
-
-    
-
-  
-
-  
-
-</div>
-
-                
-                    <div id="property_STATUS_NORMAL" class="property item">
-
-  <h3 class="blue-method-name">STATUS_NORMAL</h3>
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l109"><code>src&#x2F;Parser.js:109</code></a>
-    
-  </p>
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-    <h3 class="name"><code>STATUS_NORMAL</code></h3>
-    <span class="type">Number</span>
-
-    
-
-    
-
-    
-
-    
-
-    </div>
-
-    <div class="description">
-      <h3>Summary</h3>
-        <p>Default status constant</p>
-
-    </div>
-
-    
-        <p><strong>Default:</strong> 0x00</p>
-    
-
-    
-
-  
-
-  
-
-</div>
-
-                
-                    <div id="property_STATUS_PARSING" class="property item">
-
-  <h3 class="blue-method-name">STATUS_PARSING</h3>
-  <div class="meta method-meta">
-    
-      
-        
-      <p>
-        
-          Defined in
-        
-      
-    
-    
-      <a href="../files/src_Parser.js.html#l136"><code>src&#x2F;Parser.js:136</code></a>
-    
-  </p>
-
-    
-
-    
-  </div>
-
-  <h3>Syntax</h3>
-  <div class="blue-method-syntax">
-    <h3 class="name"><code>STATUS_PARSING</code></h3>
-    <span class="type">Number</span>
-
-    
-
-    
-
-    
-
-    
-
-    </div>
-
-    <div class="description">
-      <h3>Summary</h3>
-        <p>Parsing status constant</p>
-
-    </div>
-
-    
-        <p><strong>Default:</strong> 0x11</p>
     
 
     

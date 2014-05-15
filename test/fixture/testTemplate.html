@@ -1,0 +1,25 @@
+if section
+{{if foo == 'a'}}
+foo equal a
+{{else if foo === 'b'}}
+foo equal b
+{{else}}
+foo is else value
+{{/if}}
+
+loop section
+{{loop list}}
+{{value}}
+{{/loop}}
+
+loop + if nested
+{{loop list}}
+  {{if value > 0}}
+  {{value}}
+  {{/if}}
+{{/loop}}
+
+:rv!
+
+
+

@@ -33,6 +33,7 @@
     "grunt-plato": "~1.0.0",
     "grunt-contrib-watch": "~0.6.1",
     "grunt-mocha-cli": "~1.8.0",
-    "chai": "~1.9.1"
+    "chai": "~1.9.1",
+    "sinon": "~1.9.1"
   }
 }
