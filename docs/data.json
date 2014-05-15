@@ -280,15 +280,15 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 182,
+            "line": 181,
             "description": "Compile template string to JavaScript function",
             "itemtype": "method",
-            "name": "_compile",
-            "access": "private",
+            "name": "compile",
+            "access": "public",
             "tagname": "",
             "return": {
-                "description": "",
-                "type": "Fucntion"
+                "description": "this",
+                "type": "Parser"
             },
             "class": "Parser",
             "module": "Retriever"

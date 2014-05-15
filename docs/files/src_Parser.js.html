@@ -245,10 +245,10 @@ Parser.prototype._escape = function(str) {
         return &#x27;&#x27;;
     }
 
-    var map = { &#x27;&lt;&#x27;: &#x27;&amp;lt;&#x27;, &#x27;&gt;&#x27;: &#x27;&amp;gt;&#x27;, &#x27;&quot;&#x27;: &#x27;&amp;quot;&#x27;, &quot;&#x27;&quot;: &#x27;&amp;apos;&#x27;},
-        sed = function(m) { return map[m]; };
-
-    return str.toString().replace(/([&lt;&gt;&quot;&#x27;])/g, sed);
+    return (str+&#x27;&#x27;).replace(&#x27;&lt;&#x27;, &#x27;&amp;lt;&#x27;)
+                   .replace(&#x27;&gt;&#x27;, &#x27;&amp;gt;&#x27;)
+                   .replace(&#x27;&quot;&#x27;, &#x27;&amp;quot;&#x27;)
+                   .replace(&quot;&#x27;&quot;, &#x27;&amp;apos;&#x27;);
 };
 
 /**
@@ -261,21 +261,20 @@ Parser.prototype._escape = function(str) {
  */
 Parser.prototype.parse = function(param) {
     if ( typeof this.compiledTemplate !== &#x27;function&#x27; ) {
-        this.compiledTemplate = this._compile();
+        this.compile();
     }
 
-    //console.log(this.compiledTemplate.toString());
     return this.compiledTemplate(param || {}, Parser.Helpers, this._escape);
 };
 
 /**
  * Compile template string to JavaScript function
  *
- * @method _compile
- * @private
- * @return {Fucntion}
+ * @method compile
+ * @public
+ * @return {Parser} this
  */
-Parser.prototype._compile = function() {
+Parser.prototype.compile = function() {
     var regex   = new RegExp(Parser.leftDelimiter + &#x27;([\/#@%])?(.+?)&#x27; + Parser.rightDelimiter, &#x27;g&#x27;),
         compile = [&#x27;var b=&quot;&quot;;&#x27;],
         index   = 0,
@@ -285,7 +284,7 @@ Parser.prototype._compile = function() {
 
     while ( null !== (match = regex.exec(this.template)) ) {
         context = this.template.slice(index, match.index);
-        if ( context ) {
+        if ( context &amp;&amp; !/^[\r\n\s]+$/.test(context) ) {
             if ( nest &gt; 0 ) {
                 compile[compile.length] = &#x27;b+=&#x27; + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, &#x27;&#x27;)) + &#x27;;&#x27;;
             } else {
@@ -342,8 +341,9 @@ Parser.prototype._compile = function() {
     }
 
     compile[compile.length] = &#x27;return b;&#x27;;
+    this.compiledTemplate = new Function(&#x27;obj&#x27;, &#x27;Helper&#x27;, &#x27;_e&#x27;, compile.join(&#x27;&#x27;));
 
-    return new Function(&#x27;obj&#x27;, &#x27;Helper&#x27;, &#x27;_e&#x27;, compile.join(&#x27;&#x27;));
+    return this;
 }
 
 /**
