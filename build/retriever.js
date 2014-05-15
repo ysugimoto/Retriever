@@ -39,8 +39,20 @@ function Parser(template) {
      */
     this.rightDelimiter = '}}';
 
-    this.compiled = [];
+    /**
+     * Anonymous compiled function syntax list
+     *
+     * @property syntax
+     * @type Array
+     */
     this.syntax   = ['obj'];
+
+    /**
+     * Loop counter index
+     *
+     * @property counter
+     * @type Number
+     */
     this.counter  = 0;
 
     /**
@@ -166,7 +178,7 @@ Parser.prototype.parse = function(param) {
     }
 
     //console.log(this.compiledTemplate.toString());
-    return this.compiledTemplate.apply(this, [param || {}, Parser.Helpers]);
+    return this.compiledTemplate(param || {}, Parser.Helpers, this._escape);
 };
 
 /**
@@ -178,7 +190,7 @@ Parser.prototype.parse = function(param) {
  */
 Parser.prototype._compile = function() {
     var regex   = new RegExp(Parser.leftDelimiter + '([\/#@%])?(.+?)' + Parser.rightDelimiter, 'g'),
-        compile = ['var b=[];'],
+        compile = ['var b="";'],
         index   = 0,
         nest    = 0,
         context,
@@ -188,9 +200,9 @@ Parser.prototype._compile = function() {
         context = this.template.slice(index, match.index);
         if ( context ) {
             if ( nest > 0 ) {
-                compile[compile.length] = 'b[b.length]=' + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, '')) + ';';
+                compile[compile.length] = 'b+=' + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, '')) + ';';
             } else {
-                compile[compile.length] = 'b[b.length]=' + this.quote(context) + ';';
+                compile[compile.length] = 'b+=' + this.quote(context) + ';';
             }
         }
         index = regex.lastIndex;
@@ -212,7 +224,7 @@ Parser.prototype._compile = function() {
 
             // no-escape value
             case '%':
-                compile[compile.length] = 'b[b.length]=' + this.syntax.join('.') + '.' + match[2] + ';';
+                compile[compile.length] = 'b+=' + this.syntax.join('.') + '.' + match[2] + ';';
                 break;
 
             // control end
@@ -239,12 +251,12 @@ Parser.prototype._compile = function() {
     }
 
     if ( index < this.template.length ) {
-        compile[compile.length] = 'b[b.length]=' + this.quote(this.template.slice(index)) + ';';
+        compile[compile.length] = 'b+=' + this.quote(this.template.slice(index)) + ';';
     }
 
-    compile[compile.length] = 'return b.join("");';
+    compile[compile.length] = 'return b;';
 
-    return new Function('obj', 'Helper', compile.join(''));
+    return new Function('obj', 'Helper', '_e', compile.join(''));
 }
 
 /**
@@ -276,7 +288,7 @@ Parser.prototype._compileHelper = function(sentence) {
             args[i] = p;
         }
     }
-    return 'b[b.length]=Helper.' + helper + '(' + args.join(',') + ');';
+    return 'b+=Helper.' + helper + '(' + args.join(',') + ');';
 };
 
 /**
@@ -323,7 +335,7 @@ Parser.prototype._compileReservedVars = function(sentence) {
             return;
     }
 
-    return ( isEscape ) ? 'b[b.length]=this._escape(' + value + ');' : 'b[b.length]=' + value + ';';
+    return ( isEscape ) ? 'b+=this._escape(' + value + ');' : 'b+=' + value + ';';
 };
 
 /**
@@ -340,7 +352,7 @@ Parser.prototype._compileBuiltInControl = function(sentence) {
         c;
 
     if ( match === null ) {
-        return 'b[b.length]=this._escape(' + this.syntax.join('.') + '.' + sentence + ');';
+        return 'b+=_e(' + this.syntax.join('.') + '.' + sentence + ');';
     }
 
     switch ( match[1] ) {
@@ -372,13 +384,16 @@ Parser.prototype._compileBuiltInControl = function(sentence) {
  * @return {String} quoted string
  */
 Parser.prototype.quote = function(str) {
+    //var map = {'\n': '\\n', '\r': '\\r', '"': '\\"'},
+    //    sed = function(m) { console.log(m);return map[m[1]]; };
+
     str = str.replace(/\\/g, '\\\\\\')
              .replace(/\n/g, '\\n')
-             .replace(/\t/g, '\\t')
              .replace(/\r/g, '\\r')
              .replace(/["]/g, '\\"');
-
     return '"' + str + '"';
+
+    //return '"' + str.replace(/[^\\\\](\n|\r|\\|")/g, sed) + '"';
 };
 
 /**

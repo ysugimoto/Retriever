@@ -126,8 +126,20 @@ function Parser(template) {
      */
     this.rightDelimiter = &#x27;}}&#x27;;
 
-    this.compiled = [];
+    /**
+     * Anonymous compiled function syntax list
+     *
+     * @property syntax
+     * @type Array
+     */
     this.syntax   = [&#x27;obj&#x27;];
+
+    /**
+     * Loop counter index
+     *
+     * @property counter
+     * @type Number
+     */
     this.counter  = 0;
 
     /**
@@ -253,7 +265,7 @@ Parser.prototype.parse = function(param) {
     }
 
     //console.log(this.compiledTemplate.toString());
-    return this.compiledTemplate.apply(this, [param || {}, Parser.Helpers]);
+    return this.compiledTemplate(param || {}, Parser.Helpers, this._escape);
 };
 
 /**
@@ -265,7 +277,7 @@ Parser.prototype.parse = function(param) {
  */
 Parser.prototype._compile = function() {
     var regex   = new RegExp(Parser.leftDelimiter + &#x27;([\/#@%])?(.+?)&#x27; + Parser.rightDelimiter, &#x27;g&#x27;),
-        compile = [&#x27;var b=[];&#x27;],
+        compile = [&#x27;var b=&quot;&quot;;&#x27;],
         index   = 0,
         nest    = 0,
         context,
@@ -275,9 +287,9 @@ Parser.prototype._compile = function() {
         context = this.template.slice(index, match.index);
         if ( context ) {
             if ( nest &gt; 0 ) {
-                compile[compile.length] = &#x27;b[b.length]=&#x27; + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, &#x27;&#x27;)) + &#x27;;&#x27;;
+                compile[compile.length] = &#x27;b+=&#x27; + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, &#x27;&#x27;)) + &#x27;;&#x27;;
             } else {
-                compile[compile.length] = &#x27;b[b.length]=&#x27; + this.quote(context) + &#x27;;&#x27;;
+                compile[compile.length] = &#x27;b+=&#x27; + this.quote(context) + &#x27;;&#x27;;
             }
         }
         index = regex.lastIndex;
@@ -299,7 +311,7 @@ Parser.prototype._compile = function() {
 
             // no-escape value
             case &#x27;%&#x27;:
-                compile[compile.length] = &#x27;b[b.length]=&#x27; + this.syntax.join(&#x27;.&#x27;) + &#x27;.&#x27; + match[2] + &#x27;;&#x27;;
+                compile[compile.length] = &#x27;b+=&#x27; + this.syntax.join(&#x27;.&#x27;) + &#x27;.&#x27; + match[2] + &#x27;;&#x27;;
                 break;
 
             // control end
@@ -326,12 +338,12 @@ Parser.prototype._compile = function() {
     }
 
     if ( index &lt; this.template.length ) {
-        compile[compile.length] = &#x27;b[b.length]=&#x27; + this.quote(this.template.slice(index)) + &#x27;;&#x27;;
+        compile[compile.length] = &#x27;b+=&#x27; + this.quote(this.template.slice(index)) + &#x27;;&#x27;;
     }
 
-    compile[compile.length] = &#x27;return b.join(&quot;&quot;);&#x27;;
+    compile[compile.length] = &#x27;return b;&#x27;;
 
-    return new Function(&#x27;obj&#x27;, &#x27;Helper&#x27;, compile.join(&#x27;&#x27;));
+    return new Function(&#x27;obj&#x27;, &#x27;Helper&#x27;, &#x27;_e&#x27;, compile.join(&#x27;&#x27;));
 }
 
 /**
@@ -363,7 +375,7 @@ Parser.prototype._compileHelper = function(sentence) {
             args[i] = p;
         }
     }
-    return &#x27;b[b.length]=Helper.&#x27; + helper + &#x27;(&#x27; + args.join(&#x27;,&#x27;) + &#x27;);&#x27;;
+    return &#x27;b+=Helper.&#x27; + helper + &#x27;(&#x27; + args.join(&#x27;,&#x27;) + &#x27;);&#x27;;
 };
 
 /**
@@ -410,7 +422,7 @@ Parser.prototype._compileReservedVars = function(sentence) {
             return;
     }
 
-    return ( isEscape ) ? &#x27;b[b.length]=this._escape(&#x27; + value + &#x27;);&#x27; : &#x27;b[b.length]=&#x27; + value + &#x27;;&#x27;;
+    return ( isEscape ) ? &#x27;b+=this._escape(&#x27; + value + &#x27;);&#x27; : &#x27;b+=&#x27; + value + &#x27;;&#x27;;
 };
 
 /**
@@ -427,7 +439,7 @@ Parser.prototype._compileBuiltInControl = function(sentence) {
         c;
 
     if ( match === null ) {
-        return &#x27;b[b.length]=this._escape(&#x27; + this.syntax.join(&#x27;.&#x27;) + &#x27;.&#x27; + sentence + &#x27;);&#x27;;
+        return &#x27;b+=_e(&#x27; + this.syntax.join(&#x27;.&#x27;) + &#x27;.&#x27; + sentence + &#x27;);&#x27;;
     }
 
     switch ( match[1] ) {
@@ -459,13 +471,16 @@ Parser.prototype._compileBuiltInControl = function(sentence) {
  * @return {String} quoted string
  */
 Parser.prototype.quote = function(str) {
+    //var map = {&#x27;\n&#x27;: &#x27;\\n&#x27;, &#x27;\r&#x27;: &#x27;\\r&#x27;, &#x27;&quot;&#x27;: &#x27;\\&quot;&#x27;},
+    //    sed = function(m) { console.log(m);return map[m[1]]; };
+
     str = str.replace(/\\/g, &#x27;\\\\\\&#x27;)
              .replace(/\n/g, &#x27;\\n&#x27;)
-             .replace(/\t/g, &#x27;\\t&#x27;)
              .replace(/\r/g, &#x27;\\r&#x27;)
              .replace(/[&quot;]/g, &#x27;\\&quot;&#x27;);
-
     return &#x27;&quot;&#x27; + str + &#x27;&quot;&#x27;;
+
+    //return &#x27;&quot;&#x27; + str.replace(/[^\\\\](\n|\r|\\|&quot;)/g, sed) + &#x27;&quot;&#x27;;
 };
 
 /**

@@ -91,7 +91,27 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 44,
+            "line": 40,
+            "description": "Anonymous compiled function syntax list",
+            "itemtype": "property",
+            "name": "syntax",
+            "type": "Array",
+            "class": "Parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 48,
+            "description": "Loop counter index",
+            "itemtype": "property",
+            "name": "counter",
+            "type": "Number",
+            "class": "Parser",
+            "module": "Retriever"
+        },
+        {
+            "file": "src/Parser.js",
+            "line": 56,
             "description": "Compiled JS function parser",
             "itemtype": "property",
             "name": "compiledTemplate",
@@ -101,7 +121,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 53,
+            "line": 65,
             "description": "Left delimiter string",
             "itemtype": "property",
             "name": "leftDelimiter",
@@ -112,7 +132,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 62,
+            "line": 74,
             "description": "Right delimiter string",
             "itemtype": "property",
             "name": "rightDelimiter",
@@ -123,7 +143,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 71,
+            "line": 83,
             "description": "Set delimiter",
             "itemtype": "method",
             "name": "setDelimiter",
@@ -145,7 +165,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 84,
+            "line": 96,
             "description": "Helpers stack",
             "itemtype": "property",
             "name": "Helpers",
@@ -156,7 +176,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 93,
+            "line": 105,
             "description": "Static instanciate",
             "itemtype": "method",
             "name": "make",
@@ -177,7 +197,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 105,
+            "line": 117,
             "description": "Add helper",
             "itemtype": "method",
             "name": "addHelper",
@@ -199,7 +219,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 117,
+            "line": 129,
             "description": "Add helper from Object",
             "itemtype": "method",
             "name": "addHelperObject",
@@ -216,7 +236,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 134,
+            "line": 146,
             "description": "Escape html tag/quote",
             "itemtype": "method",
             "name": "_escape",
@@ -238,7 +258,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 153,
+            "line": 165,
             "description": "Parse template with supplied paramter",
             "itemtype": "method",
             "name": "parse",
@@ -260,7 +280,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 170,
+            "line": 182,
             "description": "Compile template string to JavaScript function",
             "itemtype": "method",
             "name": "_compile",
@@ -275,7 +295,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 248,
+            "line": 260,
             "description": "Compile helper call sentence",
             "itemtype": "method",
             "name": "_compileHelper",
@@ -297,7 +317,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 280,
+            "line": 292,
             "description": "Compile reserved word sentence",
             "itemtype": "method",
             "name": "_compileReservedVars",
@@ -319,7 +339,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 327,
+            "line": 339,
             "description": "Compile built-in control",
             "itemtype": "method",
             "name": "_compileBuiltInControl",
@@ -341,7 +361,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 364,
+            "line": 376,
             "description": "Quote Inner function string",
             "itemtype": "method",
             "name": "quote",
@@ -363,7 +383,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 382,
+            "line": 397,
             "description": "Parse If condition string",
             "itemtype": "method",
             "name": "_parseCondition",
@@ -385,7 +405,7 @@
         },
         {
             "file": "src/Parser.js",
-            "line": 418,
+            "line": 433,
             "description": "Try to get value as JavaScript primitive type",
             "itemtype": "method",
             "name": "getPrimitiveType",
