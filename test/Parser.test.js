@@ -1,11 +1,12 @@
 var Parser = require('../src/Parser');
 var expect = require('chai').expect;
+var sinon  = require('sinon');
 var fs     = require('fs');
 
 describe('Parser class testcase', function() {
     var tpl = '{{foo}}{{bar}}{{loop section}}{{data}}{{/loop}}{{if baz}}{{baz}}{{/if}}';
     var p;
-    var tpl2 = fs.readFileSync('./fixture/testTemplate.html', {encoding: 'utf8'});
+    var tpl2 = fs.readFileSync(__dirname + '/fixture/testTemplate.html', {encoding: 'utf8'});
 
     beforeEach(function() {
         p = Parser.make(tpl);
@@ -13,6 +14,36 @@ describe('Parser class testcase', function() {
 
     it('Parser.make returns Parser instance', function() {
         expect(p).to.be.instanceOf(Parser);
+    });
+
+    it('Helper add and called', function() {
+        var spy = sinon.spy();
+
+        Parser.addHelper('someHelper', spy);
+        Parser.make('{{#someHelper}}').parse();
+
+        expect(spy.called).to.be.true;
+    });
+
+    it('Helper add and called with args', function() {
+        var spy = sinon.spy();
+
+        Parser.addHelper('someHelper', spy);
+        Parser.make('{{#someHelper "test"}}').parse();
+
+        expect(spy.withArgs('test').callCount).to.eql(1);
+    });
+
+    it('Changed delimiters', function() {
+        Parser.setDelimiter('{{{', '}}}')
+        expect(Parser.make('{{{foo}}}').parse({foo: 'bar'})).to.eql('bar');
+        Parser.setDelimiter();
+    });
+
+    it('Escape string', function() {
+        var str = '<div class="{{attr}}"></div>';
+
+        expect(Parser.make(str).parse({attr: '<img src="xss" />'})).to.eql('<div class="&lt;img src=&quot;xss&quot; /&gt;"></div>');
     });
 
     it('parse to empty string when parameter not exists', function() {
@@ -37,8 +68,13 @@ describe('Parser class testcase', function() {
             .and.eql('1a2a3a');
     });
 
+    it('access to index in loop process', function() {
+        expect(Parser.make('{{loop list}}{{@index}}{{/loop}}').parse({foo: 'a', list: [1,2,3]})).to.be.a('string')
+            .and.eql('012');
+    });
+
     it('parse if empty when condition is true', function() {
-        expect(p.parse({baz: 'dog'})).to.be.a('string').and.eql('dog');
+        expect(p.parse({baz: 'dog', section: []})).to.be.a('string').and.eql('dog');
     });
 
     it('parse condition test', function() {
@@ -48,11 +84,12 @@ describe('Parser class testcase', function() {
             .and.eql('obj.a + "hoge" = 10 * 2');
     });
 
-    it('Compile test', function() {
-        var fn = Parser.make(tpl2)._compile();
+    it('Pase test', function() {
+        var o  = {foo:'b', bar:'b', list: [{value:0},{value:1},{value:2},{value:3},{value:4},{value:5}], baz: 'baz'};
 
-        //console.log(fn.toString());
-        //console.log(fn({foo:'b', bar:'b', list: [{value:0},{value:1},{value:2},{value:3},{value:4},{value:5}], baz: 'baz'}));
+        expect(function() {
+            return Parser.make(tpl2).parse(o);
+        }).not.throws;
     });
 
 });

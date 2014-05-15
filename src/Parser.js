@@ -19,31 +19,7 @@ function Parser(template) {
      * @property tpl
      * @type String
      */
-    this.tpl = template.split('');
-
-    /**
-     * Template string length
-     *
-     * @property size
-     * @type Number
-     */
-    this.size = template.length;
-
-    /**
-     * Template string index
-     *
-     * @property idx
-     * @type Number
-     */
-    this.idx = 0;
-
-    /**
-     * Template lines
-     *
-     * @property line
-     * @type Number
-     */
-    this.line = 1;
+    this.template = template;
 
     /**
      * Parser recognize left delimiter
@@ -73,6 +49,37 @@ function Parser(template) {
      */
     this.compiledTemplate = null;
 }
+
+/**
+ * Left delimiter string
+ *
+ * @property leftDelimiter
+ * @static
+ * @type String
+ */
+Parser.leftDelimiter = '{{';
+
+/**
+ * Right delimiter string
+ *
+ * @property rightDelimiter
+ * @static
+ * @type String
+ */
+Parser.rightDelimiter = '}}';
+
+/**
+ * Set delimiter
+ *
+ * @method setDelimiter
+ * @static
+ * @param {String} left Left delimiter
+ * @param {String} right Right delimiter
+ */
+Parser.setDelimiter = function(left, right) {
+    Parser.leftDelimiter  = left  || '{{';
+    Parser.rightDelimiter = right || '}}';
+};
 
 /**
  * Helpers stack
@@ -108,29 +115,20 @@ Parser.addHelper = function(name, helper) {
 };
 
 /**
- * Remove helper
+ * Add helper from Object
  *
- * @method remoeHelper
+ * @method addHelperObject
  * @static
- * @param {String} name Helper name
+ * @param {Object} helpers Helper definitions hash
  */
-Parser.removeHelper = function(name) {
-    if ( name in Parser.Helpers ) {
-        delete Parser.Helpers[name];
-    }
-};
+Parser.addHelperObject = function(helpers) {
+    var i;
 
-/**
- * Escape html tag/quote map
- *
- * @property escapeMap
- * @type Object
- */
-Parser.prototype.escapeMap = {
-    '<': '&lt;',
-    '>': '&gt:',
-    '"': '&quot;',
-    "'": '&apos;'
+    for ( i in helpers ) {
+        if ( helpers.hasOwnProperty(i) ) {
+            Parser.Helpers[i] = helpers[i];
+        }
+    }
 };
 
 /**
@@ -146,10 +144,8 @@ Parser.prototype._escape = function(str) {
         return '';
     }
 
-    var map = this.escapeMap,
-        sed = function(m) {
-            return map[m];
-        };
+    var map = { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;'},
+        sed = function(m) { return map[m]; };
 
     return str.toString().replace(/([<>"'])/g, sed);
 };
@@ -167,6 +163,7 @@ Parser.prototype.parse = function(param) {
         this.compiledTemplate = this._compile();
     }
 
+    //console.log(this.compiledTemplate.toString());
     return this.compiledTemplate.apply(this, [param || {}, Parser.Helpers]);
 };
 
@@ -178,94 +175,75 @@ Parser.prototype.parse = function(param) {
  * @return {Fucntion}
  */
 Parser.prototype._compile = function() {
-    var compile = ['var b = [];'],
-        parsing = false,
-        stack   = "",
-        cc      = "",
-        v,
-        c;
+    var regex   = new RegExp(Parser.leftDelimiter + '([\/#@%])?(.+?)' + Parser.rightDelimiter, 'g'),
+        compile = ['var b=[];'],
+        index   = 0,
+        nest    = 0,
+        context,
+        match;
 
-    while ( this.idx < this.size ) {
-        // get next char
-        c = this.tpl[this.idx];
-
-        if ( c === '' || c === void 0 ) {
-            this.idx++;
-            continue;
-        }
-
-        // matched left delimiter
-        if ( c + this.tpl[this.idx + 1] === this.leftDelimiter ) {
-            stack   = '';
-            parsing = true;
-
-            if ( cc !== '' ) {
-                compile[compile.length] = 'b[b.length]=' + this.quote(cc) + ';';
+    while ( null !== (match = regex.exec(this.template)) ) {
+        context = this.template.slice(index, match.index);
+        if ( context ) {
+            if ( nest > 0 ) {
+                compile[compile.length] = 'b[b.length]=' + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, '')) + ';';
+            } else {
+                compile[compile.length] = 'b[b.length]=' + this.quote(context) + ';';
             }
-            cc = '';
-            this.idx++;
         }
+        index = regex.lastIndex;
 
-        // matched right delimiter
-        else if ( c + this.tpl[this.idx + 1] === this.rightDelimiter ) {
-            switch ( stack.charAt(0) ) {
+        switch ( match[1] ) {
 
-                // helper call
-                case '#':
-                    compile[compile.length] = this._compileHelper(stack.slice(1));
-                    break;
+            // helper call
+            case '#':
+                compile[compile.length] = this._compileHelper(match[2]);
+                break;
 
-                // reserved variable
-                case '@':
-                    v = this._compileReservedVars(stack.slice(1));
-                    if ( v ) {
-                        compile[compile.length] = v;
-                    }
-                    break;
+            // reserved variable
+            case '@':
+                v = this._compileReservedVars(match[2]);
+                if ( v ) {
+                    compile[compile.length] = v;
+                }
+                break;
 
-                // no-escape value
-                case '%':
-                    compile[compile.length] = 'b[b.length]=' + this.syntax.join('.') + '.' + stack.slice(1) + ';';
-                    break;
+            // no-escape value
+            case '%':
+                compile[compile.length] = 'b[b.length]=' + this.syntax.join('.') + '.' + match[2] + ';';
+                break;
 
-                // control end
-                case '/':
-                    if ( stack.slice(1) === 'loop' ) {
-                        this.syntax.pop();
-                        this.counter--;
-                    }
-                    compile[compile.length] = '}';
-                    break;
+            // control end
+            case '/':
+                if ( match[2] === 'loop' ) {
+                    this.syntax.pop();
+                    this.counter--;
+                }
+                compile[compile.length] = '}';
+                nest--;
+                break;
 
-                // builtin control
-                default:
-                    v = this._compileBuiltIn(stack);
-                    if ( v ) {
-                        compile[compile.length] = v;
-                    }
-                    break;
-            }
-            parsing = false;
-            this.idx++;
+            // builtin control
+            default:
+                v = this._compileBuiltInControl(match[2]);
+                if ( v ) {
+                    compile[compile.length] = v;
+                }
+                if ( /^(loop|if)/.test(match[2]) ) {
+                    nest++;
+                }
+                break;
         }
+    }
 
-        else if ( parsing ) {
-            stack += c;
-        } else {
-            cc += c;
-        }
-
-        if ( c === "\n" ) {
-            ++this.line;
-        }
-
-        ++this.idx;
+    if ( index < this.template.length ) {
+        compile[compile.length] = 'b[b.length]=' + this.quote(this.template.slice(index)) + ';';
     }
 
     compile[compile.length] = 'return b.join("");';
 
-    return new Function('obj', 'Helpers', compile.join(''));
-};
+    return new Function('obj', 'Helper', compile.join(''));
+}
 
 /**
  * Compile helper call sentence
@@ -279,21 +257,24 @@ Parser.prototype._compileHelper = function(sentence) {
     var args   = sentence.split(/\s+/),
         helper = args.shift(),
         size   = args.length,
-        i      = 0;
+        i      = 0,
+        p;
 
     if ( typeof Parser.Helpers[helper] !== 'function' ) {
         throw new Error('Parse Error: Helper "' + helper + '" is undefined or not a function.');
     }
 
     for ( i = 0; i < size; ++i ) {
-        args[i] = this.getPrimitiveType(args[i]);
-        if ( args[i] === null ) {
+        p = this.getPrimitiveType(args[i]);
+        if ( p === null ) {
             args[i] = this.syntax.join('.') + '.' + args[i];
         } else if ( typeof p === 'string' ) {
-            args[i] = this.quote(args[i]);
+            args[i] = this.quote(p);
+        } else if ( typeof p === 'number' ) {
+            args[i] = p;
         }
     }
-    return 'b[b.length]=Helper.' + Parser.Helpers[helper] + '(' + args.join(',') + ');';
+    return 'b[b.length]=Helper.' + helper + '(' + args.join(',') + ');';
 };
 
 /**
@@ -309,7 +290,8 @@ Parser.prototype._compileReservedVars = function(sentence) {
         value,
         match;
 
-    if ( sentence.charAt(0) === '%' ) {
+    //if ( sentence.charAt(0) === '%' ) {
+    if ( sentence[0] === '%' ) {
         sentence = sentence.slice(1);
         isEscape = false;
     }
@@ -333,7 +315,8 @@ Parser.prototype._compileReservedVars = function(sentence) {
         // loop counter
         case 'index':
             isEscape = false;
-            value    = this.counter - 1;
+            value    = 'i' + (this.counter - 1);
+            break;
         default:
             return;
     }
@@ -344,14 +327,15 @@ Parser.prototype._compileReservedVars = function(sentence) {
 /**
  * Compile built-in control
  *
- * @method _compileBuiltIn
+ * @method _compileBuiltInControl
  * @private
  * @param {String} sentence built-in control senetence ( e.g if/else if/else/loop )
  * @return {String} Compile String
  */
-Parser.prototype._compileBuiltIn = function(sentence) {
+Parser.prototype._compileBuiltInControl = function(sentence) {
     var match = /^(if|else\sif|else|for|loop)(?:\s(.+))?/.exec(sentence),
-        n;
+        n,
+        c;
 
     if ( match === null ) {
         return 'b[b.length]=this._escape(' + this.syntax.join('.') + '.' + sentence + ');';
@@ -370,8 +354,9 @@ Parser.prototype._compileBuiltIn = function(sentence) {
 
         case 'loop':
         case 'for':
-            n = 'for(var i' + this.counter + '=0,size' + this.counter + '=(' + this.syntax.join('.') + '.' + match[2] + '||[]).length; i' + this.counter + '<size' + this.counter + '; ++i' + this.counter + '){';
-            this.syntax.push(match[2] + '[i' + this.counter++ + ']');
+            c = this.counter;
+            n = 'for(var i' + c + '=0,size' + c + '=(' + this.syntax.join('.') + '.' + match[2] + '||[]).length; i' + c + '<size' + c + '; ++i' + c + '){';
+            this.syntax[this.syntax.length] = match[2] + '[i' + this.counter++ + ']';
             return n;
     }
 };
@@ -385,10 +370,11 @@ Parser.prototype._compileBuiltIn = function(sentence) {
  * @return {String} quoted string
  */
 Parser.prototype.quote = function(str) {
-    str = str.replace(/\n/g, '\\n')
+    str = str.replace(/\\/g, '\\\\\\')
+             .replace(/\n/g, '\\n')
              .replace(/\t/g, '\\t')
              .replace(/\r/g, '\\r')
-             .replace(/"/g, '\"');
+             .replace(/["]/g, '\\"');
 
     return '"' + str + '"';
 };
@@ -403,7 +389,7 @@ Parser.prototype.quote = function(str) {
  */
 Parser.prototype._parseCondition = function(condition) {
     var token  = condition.replace(/([><=!&\|\/\-\+\*]{,3}?)/g, ' $1 '),
-        tokens = token.split(' '),
+        tokens = token.split(/\s+/),
         size   = tokens.length,
         i      = 0,
         cond   = [],
@@ -415,7 +401,7 @@ Parser.prototype._parseCondition = function(condition) {
         if ( tokens[i] === '' ) {
             continue;
         }
-        t = tokens[i].trim();
+        t = tokens[i];
         if ( /^[><=!&\|\/\-\+\*]{1,3}$/.test(t) ) {
             cond[cond.length] = t;
         } else {

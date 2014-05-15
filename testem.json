@@ -6,7 +6,7 @@
     ],
     "launchers": {
         "Mocha": {
-            "command": "node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha --print none --report html -- test/*.test.js -R tap",
+            "command": "node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha --print none --report html -- test/Parser.test.js -R tap",
             "protocol": "tap"
         }
     },
