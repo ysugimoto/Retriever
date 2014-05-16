@@ -45,7 +45,7 @@ function Parser(template) {
      * @property syntax
      * @type Array
      */
-    this.syntax   = ['obj'];
+    this.syntax = ['obj'];
 
     /**
      * Loop counter index
@@ -53,7 +53,7 @@ function Parser(template) {
      * @property counter
      * @type Number
      */
-    this.counter  = 0;
+    this.counter = 0;
 
     /**
      * Compiled JS function parser
@@ -62,6 +62,14 @@ function Parser(template) {
      * @type Function
      */
     this.compiledTemplate = null;
+
+    /**
+     * Variable division
+     *
+     * @property devision
+     * @type {Booelan}
+     */
+    this.division = true;
 }
 
 /**
@@ -177,7 +185,7 @@ Parser.prototype.parse = function(param) {
         this.compile();
     }
 
-    return this.compiledTemplate(param || {}, Parser.Helpers, this._escape);
+    return this.compiledTemplate(param || {}, Parser.Helpers, this._escape, '');
 };
 
 /**
@@ -189,7 +197,7 @@ Parser.prototype.parse = function(param) {
  */
 Parser.prototype.compile = function() {
     var regex   = new RegExp(Parser.leftDelimiter + '([\/#@%])?(.+?)' + Parser.rightDelimiter, 'g'),
-        compile = ['var b="";'],
+        compile = [],
         index   = 0,
         nest    = 0,
         context,
@@ -199,9 +207,9 @@ Parser.prototype.compile = function() {
         context = this.template.slice(index, match.index);
         if ( context && !/^[\r\n\s]+$/.test(context) ) {
             if ( nest > 0 ) {
-                compile[compile.length] = 'b+=' + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, '')) + ';';
+                compile[compile.length] = this.getPrefix() + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, ''));
             } else {
-                compile[compile.length] = 'b+=' + this.quote(context) + ';';
+                compile[compile.length] = this.getPrefix() + this.quote(context);
             }
         }
         index = regex.lastIndex;
@@ -210,20 +218,20 @@ Parser.prototype.compile = function() {
 
             // helper call
             case '#':
-                compile[compile.length] = this._compileHelper(match[2]);
+                compile[compile.length] = this.getPrefix() + this._compileHelper(match[2]);
                 break;
 
             // reserved variable
             case '@':
                 v = this._compileReservedVars(match[2]);
                 if ( v ) {
-                    compile[compile.length] = v;
+                    compile[compile.length] = this.getPrefix() + v;
                 }
                 break;
 
             // no-escape value
             case '%':
-                compile[compile.length] = 'b+=' + this.syntax.join('.') + '.' + match[2] + ';';
+                compile[compile.length] = this.getPrefix() + this.syntax.join('.') + '.' + match[2];
                 break;
 
             // control end
@@ -233,6 +241,7 @@ Parser.prototype.compile = function() {
                     this.counter--;
                 }
                 compile[compile.length] = '}';
+                this.division = true;
                 nest--;
                 break;
 
@@ -250,11 +259,11 @@ Parser.prototype.compile = function() {
     }
 
     if ( index < this.template.length ) {
-        compile[compile.length] = 'b+=' + this.quote(this.template.slice(index)) + ';';
+        compile[compile.length] = this.getPrefix() + this.quote(this.template.slice(index));
     }
 
-    compile[compile.length] = 'return b;';
-    this.compiledTemplate = new Function('obj', 'Helper', '_e', compile.join(''));
+    compile[compile.length] = ';return b;';
+    this.compiledTemplate = new Function('obj', 'Helper', '_e', 'b', compile.join(''));
 
     return this;
 }
@@ -288,7 +297,7 @@ Parser.prototype._compileHelper = function(sentence) {
             args[i] = p;
         }
     }
-    return 'b+=Helper.' + helper + '(' + args.join(',') + ');';
+    return 'Helper.' + helper + '(' + args.join(',') + ')';
 };
 
 /**
@@ -335,7 +344,7 @@ Parser.prototype._compileReservedVars = function(sentence) {
             return;
     }
 
-    return ( isEscape ) ? 'b+=this._escape(' + value + ');' : 'b+=' + value + ';';
+    return ( isEscape ) ? '_e(' + value + ')' : value;
 };
 
 /**
@@ -344,21 +353,23 @@ Parser.prototype._compileReservedVars = function(sentence) {
  * @method _compileBuiltInControl
  * @private
  * @param {String} sentence built-in control senetence ( e.g if/else if/else/loop )
+ * @param {Boolean} prefixVar variable prefix is needed
  * @return {String} Compile String
  */
-Parser.prototype._compileBuiltInControl = function(sentence) {
+Parser.prototype._compileBuiltInControl = function(sentence, prefixVar) {
     var match = /^(if|else\sif|else|for|loop)(?:\s(.+))?/.exec(sentence),
         n,
         c;
 
     if ( match === null ) {
-        return 'b+=_e(' + this.syntax.join('.') + '.' + sentence + ');';
+        return this.getPrefix() + '_e(' + this.syntax.join('.') + '.' + sentence + ')';
     }
 
+    this.division = true;
     switch ( match[1] ) {
 
         case 'if':
-            return 'if(' + this._parseCondition(match[2]) + '){';
+            return ';if(' + this._parseCondition(match[2]) + '){';
 
         case 'else if':
             return '}else if(' + this._parseCondition(match[2]) + '){';
@@ -369,7 +380,7 @@ Parser.prototype._compileBuiltInControl = function(sentence) {
         case 'loop':
         case 'for':
             c = this.counter;
-            n = 'for(var i' + c + '=0,size' + c + '=(' + this.syntax.join('.') + '.' + match[2] + '||[]).length; i' + c + '<size' + c + '; ++i' + c + '){';
+            n = ';for(var i' + c + '=0,size' + c + '=(' + this.syntax.join('.') + '.' + match[2] + '||[]).length; i' + c + '<size' + c + '; ++i' + c + '){';
             this.syntax[this.syntax.length] = match[2] + '[i' + this.counter++ + ']';
             return n;
     }
@@ -384,16 +395,12 @@ Parser.prototype._compileBuiltInControl = function(sentence) {
  * @return {String} quoted string
  */
 Parser.prototype.quote = function(str) {
-    //var map = {'\n': '\\n', '\r': '\\r', '"': '\\"'},
-    //    sed = function(m) { console.log(m);return map[m[1]]; };
-
     str = str.replace(/\\/g, '\\\\\\')
              .replace(/\n/g, '\\n')
              .replace(/\r/g, '\\r')
-             .replace(/["]/g, '\\"');
-    return '"' + str + '"';
+             .replace(/[']/g, "\\'");
 
-    //return '"' + str.replace(/[^\\\\](\n|\r|\\|")/g, sed) + '"';
+    return "'" + str + "'";
 };
 
 /**
@@ -450,6 +457,17 @@ Parser.prototype.getPrimitiveType = function(val) {
     }
 
     return null;
+};
+
+Parser.prototype.getPrefix = function() {
+    var prefix = '+';
+
+    if ( this.division === true ) {
+        prefix = 'b+=';
+        this.division = false;
+    }
+
+    return prefix;
 };
 
 
