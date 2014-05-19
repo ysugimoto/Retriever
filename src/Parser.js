@@ -164,10 +164,10 @@ Parser.prototype._escape = function(str) {
         return '';
     }
 
-    return (str+'').replace('<', '&lt;')
-                   .replace('>', '&gt;')
-                   .replace('"', '&quot;')
-                   .replace("'", '&apos;');
+    return (str+'').replace(/</g, '&lt;')
+                   .replace(/>/g, '&gt;')
+                   .replace(/"/g, '&quot;')
+                   .replace(/'/g, '&apos;');
 };
 
 /**

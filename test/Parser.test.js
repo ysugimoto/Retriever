@@ -11,23 +11,23 @@ describe('Parser class Basic test', function() {
         p = Parser.make(tpl);
     });
 
-    it.skip('Parser.make returns Parser instance', function() {
+    it('Parser.make returns Parser instance', function() {
         expect(p).to.be.instanceOf(Parser);
     });
 
-    it.skip('Changed delimiters', function() {
+    it('Changed delimiters', function() {
         Parser.setDelimiter('{{{', '}}}')
         expect(Parser.make('{{{foo}}}').parse({foo: 'bar'})).to.eql('bar');
         Parser.setDelimiter();
     });
 
-    it.skip('Escape binding', function() {
+    it('Escape binding', function() {
         var str = '<div class="{{attr}}"></div>';
 
         expect(Parser.make(str).parse({attr: '<img src="xss" />'})).to.eql('<div class="&lt;img src=&quot;xss&quot; /&gt;"></div>');
     });
 
-    it.skip('No escape binding', function() {
+    it('No escape binding', function() {
         var str = '<div class="{{%attr}}"></div>';
 
         expect(Parser.make(str).parse({attr: '<img src="xss" />'})).to.eql('<div class="<img src="xss" />"></div>');
@@ -40,7 +40,7 @@ describe('Parser class Helper test', function() {
         Parser.Helpers = {};
     });
 
-    it.skip('Helper add and called', function() {
+    it('Helper add and called', function() {
         var spy = sinon.spy();
 
         Parser.addHelper('someHelper', spy);
@@ -49,7 +49,7 @@ describe('Parser class Helper test', function() {
         expect(spy.called).to.be.true;
     });
 
-    it.skip('Helper add from object and called', function() {
+    it('Helper add from object and called', function() {
         var spy = sinon.spy();
 
         Parser.addHelperObject({
@@ -60,7 +60,7 @@ describe('Parser class Helper test', function() {
         expect(spy.called).to.be.true;
     });
 
-    it.skip('Helper add and called with string args', function() {
+    it('Helper add and called with string args', function() {
         var spy = sinon.spy();
 
         Parser.addHelper('someHelper', spy);
@@ -69,7 +69,7 @@ describe('Parser class Helper test', function() {
         expect(spy.withArgs('test').callCount).to.eql(1);
     });
 
-    it.skip('Helper add and called with bind args', function() {
+    it('Helper add and called with bind args', function() {
         var spy = sinon.spy();
 
         Parser.addHelper('someHelper', spy);
@@ -78,7 +78,7 @@ describe('Parser class Helper test', function() {
         expect(spy.withArgs('bind').callCount).to.eql(1);
     });
 
-    it.skip('Helper add and called with number args', function() {
+    it('Helper add and called with number args', function() {
         var spy = sinon.spy();
 
         Parser.addHelper('someHelper', spy);
@@ -87,7 +87,7 @@ describe('Parser class Helper test', function() {
         expect(spy.withArgs(10).callCount).to.eql(1);
     });
 
-    it.skip('Undefined helper called', function() {
+    it('Undefined helper called', function() {
         expect(function() {
             Parser.make('{{#undefHelper}}').parse();
         }).to.throws(Error, /Parse Error/);
@@ -96,19 +96,19 @@ describe('Parser class Helper test', function() {
 
 describe('Parser class Reserved-vars test', function() {
 
-    it.skip('@data referenced current value', function() {
+    it('@data referenced current value', function() {
         var p = Parser.make('{{loop list}}{{@data}}{{/loop}}');
 
         expect(p.parse({list: [1,2,3]})).to.eql('123');
     });
 
-    it.skip('@data referenced current value and use no-escape.', function() {
+    it('@data referenced current value and use no-escape.', function() {
         var p = Parser.make('{{loop list}}{{@%data}}{{/loop}}');
 
         expect(p.parse({list: ['<s>']})).to.eql('<s>');
     });
 
-    it.skip('@data referenced current value and enable syntax value', function() {
+    it('@data referenced current value and enable syntax value', function() {
         var p = Parser.make('{{loop list}}{{@data.foo}}{{/loop}}');
 
         expect(p.parse({
@@ -120,25 +120,25 @@ describe('Parser class Reserved-vars test', function() {
         })).to.eql('123');
     });
 
-    it.skip('@parent referenced outer-loop object', function() {
+    it('@parent referenced outer-loop object', function() {
         var p = Parser.make('{{loop list}}{{@parent}}{{/loop}}');
 
         expect(p.parse({foo: 'bar', list: [1,2,3]})).to.eql('[object Object][object Object][object Object]');
     });
 
-    it.skip('@data referenced current value and enable syntax value', function() {
+    it('@data referenced current value and enable syntax value', function() {
         var p = Parser.make('{{loop list}}{{@parent.foo}}{{/loop}}');
 
         expect(p.parse({foo: 'bar', list: [1,2,3]})).to.eql('barbarbar');
     });
 
-    it.skip('@index referenced loop-index', function() {
+    it('@index referenced loop-index', function() {
         var p = Parser.make('{{loop list}}{{@index}}{{/loop}}');
 
         expect(p.parse({list: [1,2,3]})).to.eql('012');
     });
 
-    it.skip('undefined var returns empty', function() {
+    it('undefined var returns empty', function() {
         var p = Parser.make('{{loop list}}{{@some}}{{/loop}}');
 
         expect(p.parse({list: [1,2,3]})).to.eql('');
@@ -154,47 +154,19 @@ describe('Parser class Parsing test', function() {
         p = Parser.make(tpl);
     });
 
-    it.skip('parse to empty string when parameter not exists', function() {
+    it('parse to empty string when parameter not exists', function() {
         expect(p.parse()).to.be.a('string').and.empty;
     });
 
-    it.skip('parse to string when parameter is exists', function() {
+    it('parse to string when parameter is exists', function() {
         expect(p.parse({foo:'a',bar:'b'})).to.be.a('string').and.eql('ab');
     });
 
-    it.skip('parse if empty when condition is true', function() {
+    it('parse if empty when condition is true', function() {
         expect(p.parse({baz: 'dog', section: []})).to.be.a('string').and.eql('dog');
     });
 
-    it('parse condition test', function() {
-        var cond = 'a    +"hoge" = 10 * 2.5';
-
-        expect(Parser.prototype._parseCondition.call(p, cond)).to.be.a('string')
-            .and.eql('obj.a + "hoge" = 10 * 2.5');
-    });
-
-    it.skip('Parse test', function() {
-        var o  = {foo:'b', bar:'b', list: [{value:0},{value:1},{value:2},{value:3},{value:4},{value:5}], baz: 'baz'};
-
-        expect(function() {
-            return Parser.make(tpl2).parse(o);
-        }).not.throws;
-    });
-
-    it.skip('Nested loop', function() {
-        var tpl = '{{for list}}{{for values}}foo{{@data}}{{/for}}{{/for}}';
-        var param = {
-            list: [
-                {values: [1,1]},
-                {values: [2,2]},
-                {values: [3,3]}
-            ]
-        };
-
-        expect(Parser.make(tpl).parse(param)).to.eql('foo1foo1foo2foo2foo3foo3');
-    });
-
-    it.skip('if-elseif-else', function() {
+    it('if-elseif-else', function() {
         var tpl = 'Result:{{if a > 10}}greater than 10{{else if a > 0}}greater than 0{{else}}failed{{/if}}';
 
         expect(Parser.make(tpl).parse({a: 5})).to.eql('Result:greater than 0');
