@@ -38,16 +38,28 @@ module.exports = function(grunt) {
 
         watch: {
             tests: {
-                files: ['src/*.js'],
+                files: ['src/**/*.js'],
                 tasks: ['mochacli:spec']
             },
             js: {
-                files: ['src/*.js'],
+                files: ['src/**/**/*.js'],
                 tasks: ['sprockets']
             },
             doc: {
                 files: ['src/js/*.js'],
                 tasks: ['gendoc']
+            }
+        },
+
+        connect: {
+            server: {
+                options: {
+                    port: 8890,
+                    hostname: 'localhost',
+                    base: 'htdocs',
+                    open: true,
+                    keepalive: true
+                }
             }
         },
 
@@ -91,6 +103,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-yuidoc');
     grunt.loadNpmTasks('grunt-plato');
+    grunt.loadNpmTasks('grunt-contrib-connect');
 
     grunt.registerTask('gendoc', ['yuidoc']);
     grunt.registerTask('test', ['mochacli:spec']);

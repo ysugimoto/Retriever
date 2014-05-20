@@ -1,0 +1,34 @@
+<!doctype html><html><head>
+
+<meta charset="UTF-8">
+<title>DataBind test</title>
+
+</head>
+
+<body>
+
+<div data-bind-type="loop">
+    <input type="text" data-bind-name="input" />
+    <div data-bind-name="foo" data-bind-event="click">bbb</div>
+    <button data-bind-name="action" data-bind-event="click">Action</button>
+</div>
+
+<script src="retriever.js"></script>
+<script>
+    var Model = DataBind.Model.extend('ViewModel', {
+        input: "input",
+        result: "value",
+        foo: function() {
+            console.log('called');
+            return this.input.get() + 'foo';
+        },
+        action: function() {
+            this.input.set('hogehoge');
+        }
+    });
+
+    var model = new Model();
+
+</script>
+</body>
+</html>

@@ -45,7 +45,7 @@ function Parser(template) {
      * @property syntax
      * @type Array
      */
-    this.syntax   = ['obj'];
+    this.syntax = ['obj'];
 
     /**
      * Loop counter index
@@ -53,7 +53,7 @@ function Parser(template) {
      * @property counter
      * @type Number
      */
-    this.counter  = 0;
+    this.counter = 0;
 
     /**
      * Compiled JS function parser
@@ -62,6 +62,14 @@ function Parser(template) {
      * @type Function
      */
     this.compiledTemplate = null;
+
+    /**
+     * Variable division
+     *
+     * @property devision
+     * @type {Booelan}
+     */
+    this.division = true;
 }
 
 /**
@@ -158,10 +166,10 @@ Parser.prototype._escape = function(str) {
         return '';
     }
 
-    return (str+'').replace('<', '&lt;')
-                   .replace('>', '&gt;')
-                   .replace('"', '&quot;')
-                   .replace("'", '&apos;');
+    return (str+'').replace(/</g, '&lt;')
+                   .replace(/>/g, '&gt;')
+                   .replace(/"/g, '&quot;')
+                   .replace(/'/g, '&apos;');
 };
 
 /**
@@ -177,7 +185,7 @@ Parser.prototype.parse = function(param) {
         this.compile();
     }
 
-    return this.compiledTemplate(param || {}, Parser.Helpers, this._escape);
+    return this.compiledTemplate(param || {}, Parser.Helpers, this._escape, '');
 };
 
 /**
@@ -189,7 +197,7 @@ Parser.prototype.parse = function(param) {
  */
 Parser.prototype.compile = function() {
     var regex   = new RegExp(Parser.leftDelimiter + '([\/#@%])?(.+?)' + Parser.rightDelimiter, 'g'),
-        compile = ['var b="";'],
+        compile = [],
         index   = 0,
         nest    = 0,
         context,
@@ -199,9 +207,9 @@ Parser.prototype.compile = function() {
         context = this.template.slice(index, match.index);
         if ( context && !/^[\r\n\s]+$/.test(context) ) {
             if ( nest > 0 ) {
-                compile[compile.length] = 'b+=' + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, '')) + ';';
+                compile[compile.length] = this.getPrefix() + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, ''));
             } else {
-                compile[compile.length] = 'b+=' + this.quote(context) + ';';
+                compile[compile.length] = this.getPrefix() + this.quote(context);
             }
         }
         index = regex.lastIndex;
@@ -210,20 +218,20 @@ Parser.prototype.compile = function() {
 
             // helper call
             case '#':
-                compile[compile.length] = this._compileHelper(match[2]);
+                compile[compile.length] = this.getPrefix() + this._compileHelper(match[2]);
                 break;
 
             // reserved variable
             case '@':
                 v = this._compileReservedVars(match[2]);
                 if ( v ) {
-                    compile[compile.length] = v;
+                    compile[compile.length] = this.getPrefix() + v;
                 }
                 break;
 
             // no-escape value
             case '%':
-                compile[compile.length] = 'b+=' + this.syntax.join('.') + '.' + match[2] + ';';
+                compile[compile.length] = this.getPrefix() + this.syntax.join('.') + '.' + match[2];
                 break;
 
             // control end
@@ -233,6 +241,7 @@ Parser.prototype.compile = function() {
                     this.counter--;
                 }
                 compile[compile.length] = '}';
+                this.division = true;
                 nest--;
                 break;
 
@@ -250,11 +259,11 @@ Parser.prototype.compile = function() {
     }
 
     if ( index < this.template.length ) {
-        compile[compile.length] = 'b+=' + this.quote(this.template.slice(index)) + ';';
+        compile[compile.length] = this.getPrefix() + this.quote(this.template.slice(index));
     }
 
-    compile[compile.length] = 'return b;';
-    this.compiledTemplate = new Function('obj', 'Helper', '_e', compile.join(''));
+    compile[compile.length] = ';return b;';
+    this.compiledTemplate = new Function('obj', 'Helper', '_e', 'b', compile.join(''));
 
     return this;
 }
@@ -288,7 +297,7 @@ Parser.prototype._compileHelper = function(sentence) {
             args[i] = p;
         }
     }
-    return 'b+=Helper.' + helper + '(' + args.join(',') + ');';
+    return 'Helper.' + helper + '(' + args.join(',') + ')';
 };
 
 /**
@@ -335,7 +344,7 @@ Parser.prototype._compileReservedVars = function(sentence) {
             return;
     }
 
-    return ( isEscape ) ? 'b+=this._escape(' + value + ');' : 'b+=' + value + ';';
+    return ( isEscape ) ? '_e(' + value + ')' : value;
 };
 
 /**
@@ -344,21 +353,23 @@ Parser.prototype._compileReservedVars = function(sentence) {
  * @method _compileBuiltInControl
  * @private
  * @param {String} sentence built-in control senetence ( e.g if/else if/else/loop )
+ * @param {Boolean} prefixVar variable prefix is needed
  * @return {String} Compile String
  */
-Parser.prototype._compileBuiltInControl = function(sentence) {
+Parser.prototype._compileBuiltInControl = function(sentence, prefixVar) {
     var match = /^(if|else\sif|else|for|loop)(?:\s(.+))?/.exec(sentence),
         n,
         c;
 
     if ( match === null ) {
-        return 'b+=_e(' + this.syntax.join('.') + '.' + sentence + ');';
+        return this.getPrefix() + '_e(' + this.syntax.join('.') + '.' + sentence + ')';
     }
 
+    this.division = true;
     switch ( match[1] ) {
 
         case 'if':
-            return 'if(' + this._parseCondition(match[2]) + '){';
+            return ';if(' + this._parseCondition(match[2]) + '){';
 
         case 'else if':
             return '}else if(' + this._parseCondition(match[2]) + '){';
@@ -369,7 +380,7 @@ Parser.prototype._compileBuiltInControl = function(sentence) {
         case 'loop':
         case 'for':
             c = this.counter;
-            n = 'for(var i' + c + '=0,size' + c + '=(' + this.syntax.join('.') + '.' + match[2] + '||[]).length; i' + c + '<size' + c + '; ++i' + c + '){';
+            n = ';for(var i' + c + '=0,size' + c + '=(' + this.syntax.join('.') + '.' + match[2] + '||[]).length; i' + c + '<size' + c + '; ++i' + c + '){';
             this.syntax[this.syntax.length] = match[2] + '[i' + this.counter++ + ']';
             return n;
     }
@@ -384,16 +395,12 @@ Parser.prototype._compileBuiltInControl = function(sentence) {
  * @return {String} quoted string
  */
 Parser.prototype.quote = function(str) {
-    //var map = {'\n': '\\n', '\r': '\\r', '"': '\\"'},
-    //    sed = function(m) { console.log(m);return map[m[1]]; };
-
     str = str.replace(/\\/g, '\\\\\\')
              .replace(/\n/g, '\\n')
              .replace(/\r/g, '\\r')
-             .replace(/["]/g, '\\"');
-    return '"' + str + '"';
+             .replace(/[']/g, "\\'");
 
-    //return '"' + str.replace(/[^\\\\](\n|\r|\\|")/g, sed) + '"';
+    return "'" + str + "'";
 };
 
 /**
@@ -452,9 +459,305 @@ Parser.prototype.getPrimitiveType = function(val) {
     return null;
 };
 
+Parser.prototype.getPrefix = function() {
+    var prefix = '+';
+
+    if ( this.division === true ) {
+        prefix = 'b+=';
+        this.division = false;
+    }
+
+    return prefix;
+};
+
+
+
+function DataBind(_doc) {
+    if ( DataBind.intialized === true ) {
+        return;
+    }
+
+    var doc   = _doc || document,
+        nodes = doc.querySelectorAll('[data-bind-name]'),
+        size  = nodes.length,
+        i     = 0,
+        views = [],
+        view,
+        parentView;
+
+    for ( ; i < size; ++i ) {
+        views.push(DataBind.View.make(nodes[i]));
+    }
+
+    views.forEach(function(view) {
+        DataBind.addView(view.getSignature(), view);
+    });
+
+    DataBind.initalized = true;
+};
+
+DataBind.subscribers = {};
+DataBind.viewFactory = {};
+DataBind.initalized  = false;
+
+DataBind.pubsubID    = 0;
+
+DataBind.publish = function(signature, data) {
+    DataBind.pubsubID++;
+
+    Object.keys(this.subscribers).forEach(function(name) {
+        if ( signature[0] === name || signature[0] === '*' ) {
+            DataBind.subscribers[name].update(signature[1], data);
+        }
+    });
+};
+
+DataBind.subscribe = function(name, model) {
+    DataBind.subscribers[name] = model;
+};
+
+DataBind.unsubscribe = function(name) {
+    if ( name in DataBind.subscribers ) {
+        delete DataBind.subscribers[name];
+    }
+};
+
+
+DataBind.addView = function(signature, view) {
+    if ( ! (signature in DataBind.viewFactory) ) {
+        DataBind.viewFactory[signature] = [];
+    }
+    DataBind.viewFactory[signature].push(view);
+};
+
+DataBind.getView = function(signature) {
+    return DataBind.viewFactory[signature] || [];
+};
+
+
+
+DataBind.Model = DataBind_Model;
+
+function DataBind_Model(name, model) {
+    var fn = function DataBindModel() {
+        if ( typeof model === 'function' ) {
+            model.call(this);
+        } else {
+            Object.keys(model).forEach(function(key) {
+                this[key] = model[key];
+            }.bind(this));
+        }
+
+        this.__observe(name);
+    }
+
+    if ( typeof model === 'function' ) {
+        fn.prototype = model.prototype;
+    }
+
+    Object.keys(DataBind_Model.prototype).forEach(function(p) {
+        fn.prototype[p] = DataBind_Model.prototype[p];
+    });
+
+    return fn;
+}
+
+DataBind_Model.extend = function(name, model) {
+    return new DataBind_Model(name, model || {});
+};
+
+DataBind_Model.prototype.__observe = function(name) {
+    DataBind();
+
+    var observes = Object.keys(this).filter(function(k) { return k.indexOf('-') !== 0; });
+
+    this._updated = {};
+
+    observes.forEach(function(prop) {
+        var v = this[prop];
+        switch ( typeof this[prop] ) {
+            case 'string':
+            case 'number':
+                this[prop] = new DataBind.Observer.Primitive(name, prop, this[prop]);
+                this._updated[prop] = false;
+                break;
+            case 'function':
+                this[prop] = new DataBind.Observer.Computed(name, prop, this[prop], this);
+                this._updated[prop] = false;
+                break;
+        }
+    }.bind(this));
+
+    DataBind.subscribe(name, this);
+};
+
+DataBind_Model.prototype.update = function(prop, data) {
+    var ret;
+
+    if ( ! this.hasOwnProperty(prop) ) {
+        return;
+    }
+
+    if ( this._updated[prop] === false && this[prop] instanceof DataBind.Observer.Computed ) {
+        this._updated[prop] = true;
+
+        // Trigger property call
+        if ( void 0 !== (ret = this[prop].execute()) ) {
+            this[prop].update(ret);
+        }
+
+    } else if ( this._updated[prop] === false && this[prop] instanceof DataBind.Observer.Primitive ) {
+        this._updated[prop] = true;
+        this[prop].update(data);
+    }
+
+    Object.keys(this).forEach(function(key) {
+        if ( key !== prop && this._updated[key] === false && this[key] instanceof DataBind.Observer.Computed ) {
+            // Chained peorperty call and set
+            this._updated[key] = true;
+
+            if ( void 0 !== (ret = this[key].execute()) ) {
+                this[key].set(ret);
+            }
+        }
+    }.bind(this));
+
+    if ( --DataBind.pubsubID === 0 ) {
+        Object.keys(this._updated).forEach(function(key) {
+            this._updated[key] = false;
+        }.bind(this));
+    }
+};
+
+
+
+DataBind.Observer = DataBind_Observer;
+
+function DataBind_Observer() {}
+
+DataBind_Observer.prototype.initialize = function(modelName, propName, defaultData) {
+    this.data      = defaultData;
+    this.keep      = defaultData;
+    this.signature = [modelName, propName];
+
+    if ( this instanceof DataBind.Observer.Primitive ) {
+        this.update(this.data);
+    }
+}
+
+DataBind_Observer.prototype.getChainViews = function(model, prop) {
+    var modelViews  = DataBind.getView(model + '.' + prop),
+        globalViews = DataBind.getView('*.' + prop);
+
+    return modelViews.concat(globalViews);
+};
+
+DataBind_Observer.prototype.get = function() {
+    return this.data;
+};
+
+DataBind_Observer.prototype.set = function(data) {
+    this.data = data;
+
+    DataBind.publish(this.signature, data);
+    this.update(data);
+};
+
+DataBind_Observer.prototype.update = function(data) {
+    var sig = this.signature;
+
+    this.data = data;
+    this.keep = data;
+
+    this.getChainViews(sig[0], sig[1]).forEach(function(view) {
+        if ( /INPUT|SELECT|TEXTAREA/.test(view.node.tagName) ) {
+            view.node.value = data;
+        } else {
+            view.node.innerText = data;
+        }
+         
+    });
+};
+
+
+
+DataBind.Observer.Computed = DataBind_Observer_Computed;
+
+DataBind_Observer_Computed.prototype = new DataBind.Observer();
+
+function DataBind_Observer_Computed() {
+    this.func  = arguments[2];
+    this.model = arguments[3];
+
+    this.initialize(arguments[0], arguments[1]);
+}
+
+DataBind_Observer_Computed.prototype.execute = function() {
+    return this.func.call(this.model);
+};
+
+
+
+DataBind.Observer.Primitive = DataBind_Observer_Primitive;
+
+DataBind_Observer_Primitive.prototype = new DataBind.Observer();
+
+function DataBind_Observer_Primitive() {
+    this.initialize.apply(this, arguments);
+}
+
+
+
+
+DataBind.View  = DataBind_View;
+
+function DataBind_View(node) {
+    var eventName = node.getAttribute('data-bind-event');
+
+    this.node      = node;
+    this.eventName = eventName || 'change';
+    this.eventOnly = !!eventName;
+    this.signature = node.getAttribute('data-bind-name').split('.');
+
+    this.node.__rtvid = ++DataBind_View.idx;
+
+    this.initialize();
+}
+
+DataBind_View.idx = 0;
+
+DataBind_View.make = function(node) {
+    return new DataBind_View(node);
+};
+
+DataBind_View.prototype.initialize = function() {
+    if ( this.signature.length === 1 ) {
+        this.signature.unshift('*');
+    }
+
+    this.node.addEventListener(this.eventName, this);
+}
+
+DataBind_View.prototype.getNode = function() {
+    return this.node;
+};
+
+DataBind_View.prototype.getSignature = function() {
+    return this.signature.join('.');
+};
+
+DataBind_View.prototype.isEventHandler = function() {
+    return this.eventOnly;
+};
+
+DataBind_View.prototype.handleEvent = function(evt) {
+    DataBind.publish(this.signature, this.node.value || this.node.innerHTML);
+};
 
 
 
 global.Retriever = Parser;
+global.DataBind  = DataBind;
+
 
 })(this);
