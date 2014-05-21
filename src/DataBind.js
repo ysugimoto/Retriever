@@ -1,10 +1,12 @@
-function DataBind(_doc) {
-    if ( DataBind.intialized === true ) {
-        return;
+function DataBind() {
+    if ( DataBind.rootNode === null ) {
+        DataBind.setRoot();
     }
+}
 
-    var doc   = _doc || document,
-        nodes = doc.querySelectorAll('[data-bind-name]'),
+DataBind.setRoot = function(_doc) {
+    var root  = _doc || document,
+        nodes = root.querySelectorAll('[data-bind-name]'),
         size  = nodes.length,
         i     = 0,
         views = [],
@@ -16,15 +18,22 @@ function DataBind(_doc) {
     }
 
     views.forEach(function(view) {
-        DataBind.addView(view.getSignature(), view);
+        if ( ! DataBind.exists(view.node) ) {
+            DataBind.addView(view.getSignature(), view);
+        }
     });
 
-    DataBind.initalized = true;
+    ['change', 'click', 'focus', 'blur'].forEach(function(type) {
+        root.addEventListener(type, DataBind.handleEvent);
+    });
+
+    DataBind.rootNode = root;
 };
 
 DataBind.subscribers = {};
-DataBind.viewFactory = {};
-DataBind.initalized  = false;
+DataBind.viewFactory = {signatures: {}, ids: []};
+DataBind.viewID      = 0;
+DataBind.rootNode    = null;
 
 DataBind.pubsubID    = 0;
 
@@ -38,8 +47,8 @@ DataBind.publish = function(signature, data) {
     });
 };
 
-DataBind.subscribe = function(name, model) {
-    DataBind.subscribers[name] = model;
+DataBind.subscribe = function(model) {
+    DataBind.subscribers[model.getName()] = model;
 };
 
 DataBind.unsubscribe = function(name) {
@@ -48,16 +57,62 @@ DataBind.unsubscribe = function(name) {
     }
 };
 
+DataBind.handleEvent = function(evt) {
+    var node = evt.target,
+        type,
+        id,
+        view;
+
+    if ( node.nodeType !== 1 ) {
+        node = node.parentNode;
+    }
+
+    while ( node && node !== document ) {
+        type = node.getAttribute('data-bind-event');
+        id   = node.__rtvid;
+
+        if ( id && type && type.indexOf(evt.type) !== -1 && null !== (view = DataBind.getViewByID(id)) ) {
+            break;
+        }
+        node = node.parentNode;
+    }
+
+    if ( view ) {
+        DataBind.publish(view.signature, node.value || node.innerHTML);
+    }
+};
 
 DataBind.addView = function(signature, view) {
-    if ( ! (signature in DataBind.viewFactory) ) {
-        DataBind.viewFactory[signature] = [];
+    if ( ! (signature in DataBind.viewFactory.signatures) ) {
+        DataBind.viewFactory.signatures[signature] = [];
     }
-    DataBind.viewFactory[signature].push(view);
+    DataBind.viewFactory.signatures[signature].push(view);
+    DataBind.viewFactory.ids[view.id] = view;
 };
 
 DataBind.getView = function(signature) {
-    return DataBind.viewFactory[signature] || [];
+    return DataBind.viewFactory.signatures[signature] || [];
 };
+
+DataBind.exists = function(node) {
+    var views = DataBind.viewFactory.ids,
+        size  = views.length,
+        i     = 1;
+
+    for ( ; i < size; ++i ) {
+        if ( ! views[i] ) {
+            continue;
+        }
+        if ( views[i].node === node ) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+DataBind.getViewByID = function(id) {
+    return DataBind.viewFactory.ids[id] || null;
+}
 
 //= require_tree databind-class

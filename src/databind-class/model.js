@@ -40,21 +40,23 @@ DataBind_Model.prototype.__observe = function(name) {
     this._updated = {};
 
     observes.forEach(function(prop) {
-        var v = this[prop];
-        switch ( typeof this[prop] ) {
-            case 'string':
-            case 'number':
-                this[prop] = new DataBind.Observer.Primitive(name, prop, this[prop]);
-                this._updated[prop] = false;
-                break;
-            case 'function':
-                this[prop] = new DataBind.Observer.Computed(name, prop, this[prop], this);
-                this._updated[prop] = false;
-                break;
+        if ( this[prop] instanceof Array ) {
+            this[prop] = new DataBind.Observer.Array(name, prop, this[prop]);
+        } else if ( Object.prototype.toString.call(this[prop]) === '[object Object]' ) {
+            this[prop] = new DataBind.Observer.Hash(name, prop, this[prop]);
+        } else if ( typeof this[prop] === 'function' ) {
+            this[prop] = new DataBind.Observer.Computed(name, prop, this[prop], this);
+        } else {
+            this[prop] = new DataBind.Observer.Primitive(name, prop, this[prop]);
         }
+
+        this._updated[prop] = false;
     }.bind(this));
 
-    DataBind.subscribe(name, this);
+    // Attach inline
+    this.getName = function() {
+        return name;
+    }
 };
 
 DataBind_Model.prototype.update = function(prop, data) {

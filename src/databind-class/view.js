@@ -12,12 +12,12 @@ function DataBind_View(node) {
     this.eventOnly = !!eventName;
     this.signature = node.getAttribute('data-bind-name').split('.');
 
-    this.node.__rtvid = ++DataBind_View.idx;
+    this.id = this.node.__rtvid = ++DataBind.viewID;
 
     this.initialize();
 }
 
-DataBind_View.idx = 0;
+DataBind_View.prototype = new DataBind.Observer();
 
 DataBind_View.make = function(node) {
     return new DataBind_View(node);
@@ -28,7 +28,11 @@ DataBind_View.prototype.initialize = function() {
         this.signature.unshift('*');
     }
 
-    this.node.addEventListener(this.eventName, this);
+    if ( this.eventOnly === false ) {
+        this.node.setAttribute('data-bind-event', this.eventName);
+    }
+
+    //this.node.addEventListener(this.eventName, this);
 }
 
 DataBind_View.prototype.getNode = function() {

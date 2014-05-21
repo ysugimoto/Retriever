@@ -10,10 +10,6 @@ DataBind_Observer.prototype.initialize = function(modelName, propName, defaultDa
     this.data      = defaultData;
     this.keep      = defaultData;
     this.signature = [modelName, propName];
-
-    if ( this instanceof DataBind.Observer.Primitive ) {
-        this.update(this.data);
-    }
 }
 
 DataBind_Observer.prototype.getChainViews = function(model, prop) {
@@ -41,12 +37,11 @@ DataBind_Observer.prototype.update = function(data) {
     this.keep = data;
 
     this.getChainViews(sig[0], sig[1]).forEach(function(view) {
-        if ( /INPUT|SELECT|TEXTAREA/.test(view.node.tagName) ) {
+        if ( 'value' in view.node ) {
             view.node.value = data;
         } else {
-            view.node.innerText = data;
+            view.node.innerHTML = data;
         }
-         
     });
 };
 

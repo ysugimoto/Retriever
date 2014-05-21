@@ -11,16 +11,22 @@
     <input type="text" data-bind-name="input" />
     <div data-bind-name="foo" data-bind-event="click">bbb</div>
     <button data-bind-name="action" data-bind-event="click">Action</button>
+    <select name="hoge" data-bind-name="list">
+        <option value="">default</option>
+        <option value="1">foo</option>
+    </select>
 </div>
 
 <script src="retriever.js"></script>
 <script>
+
     var Model = DataBind.Model.extend('ViewModel', {
         input: "input",
         result: "value",
+        list: [1,2,3,4],
         foo: function() {
             console.log('called');
-            return this.input.get() + 'foo';
+            return this.input.get() + this.list.get();
         },
         action: function() {
             this.input.set('hogehoge');
@@ -28,6 +34,9 @@
     });
 
     var model = new Model();
+
+    DataBind.subscribe(model);
+
 
 </script>
 </body>
