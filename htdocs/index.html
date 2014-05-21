@@ -11,9 +11,8 @@
     <input type="text" data-bind-name="input" />
     <div data-bind-name="foo" data-bind-event="click">bbb</div>
     <button data-bind-name="action" data-bind-event="click">Action</button>
-    <select name="hoge" data-bind-name="list">
-        <option value="">default</option>
-        <option value="1">foo</option>
+    <select name="hoge" data-bind-name="list" data-bind-each="test">
+        <option data-bind-name="result" value="{{@index}}">{{@data}}</option>
     </select>
 </div>
 

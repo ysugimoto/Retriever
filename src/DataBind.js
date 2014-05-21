@@ -5,13 +5,22 @@ function DataBind() {
 }
 
 DataBind.setRoot = function(_doc) {
-    var root  = _doc || document,
-        nodes = root.querySelectorAll('[data-bind-name]'),
+    var root = _doc || document;
+
+    DataBind.factory(root);
+
+    ['change', 'click', 'focus', 'blur'].forEach(function(type) {
+        root.addEventListener(type, DataBind.handleEvent);
+    });
+
+    DataBind.rootNode = root;
+};
+
+DataBind.factory = function(rootNode) {
+    var nodes = rootNode.querySelectorAll('[data-bind-name]'),
         size  = nodes.length,
         i     = 0,
-        views = [],
-        view,
-        parentView;
+        views = [];
 
     for ( ; i < size; ++i ) {
         views.push(DataBind.View.make(nodes[i]));
@@ -23,12 +32,40 @@ DataBind.setRoot = function(_doc) {
         }
     });
 
-    ['change', 'click', 'focus', 'blur'].forEach(function(type) {
-        root.addEventListener(type, DataBind.handleEvent);
+    console.log(DataBind.viewFactory);
+    DataBind.filter();
+    console.log(DataBind.viewFactory);
+};
+
+DataBind.filter = function() {
+    Object.keys(DataBind.viewFactory.signatures).forEach(function(signature) {
+        var list = DataBind.viewFactory.signatures[signature],
+            size = list.length,
+            i    = 0,
+            update = [];
+
+        for ( ; i < size; ++i ) {
+            if ( list[i].node.parentNode !== null ) {
+                update[update.length] = list[i];
+            }
+        }
+
+        DataBind.viewFactory.signatures[signature] = update;
     });
 
-    DataBind.rootNode = root;
+    var ids  = DataBind.viewFactory.ids,
+        size = ids.length,
+        i    = 1;
+
+    for ( ; i < size; ++i ) {
+        if ( ids[i].node.parentNode == null ) {
+            ids[i] = null;
+        }
+    }
+
+    DataBind.viewFactory.ids = ids;
 };
+
 
 DataBind.subscribers = {};
 DataBind.viewFactory = {signatures: {}, ids: []};

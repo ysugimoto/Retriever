@@ -13,7 +13,23 @@ function DataBind_Observer_Computed() {
     this.initialize(arguments[0], arguments[1]);
 }
 
-DataBind_Observer_Computed.prototype.execute = function() {
-    return this.func.call(this.model);
+DataBind_Observer_Computed.prototype.set = function() {
+    var data = this.func.call(this.model);
+
+    if ( data !== void 0 ) {
+        this.data = data;
+
+        DataBind.publish(this.signature, data);
+        this.chainView(data);
+    }
 };
 
+DataBind_Observer_Computed.prototype.update = function() {
+    var data = this.func.call(this.model);
+
+    if ( data !== void 0 ) {
+        this.data = data;
+
+        this.chainView(data);
+    }
+};

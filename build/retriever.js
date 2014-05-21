@@ -479,13 +479,22 @@ function DataBind() {
 }
 
 DataBind.setRoot = function(_doc) {
-    var root  = _doc || document,
-        nodes = root.querySelectorAll('[data-bind-name]'),
+    var root = _doc || document;
+
+    DataBind.factory(root);
+
+    ['change', 'click', 'focus', 'blur'].forEach(function(type) {
+        root.addEventListener(type, DataBind.handleEvent);
+    });
+
+    DataBind.rootNode = root;
+};
+
+DataBind.factory = function(rootNode) {
+    var nodes = rootNode.querySelectorAll('[data-bind-name]'),
         size  = nodes.length,
         i     = 0,
-        views = [],
-        view,
-        parentView;
+        views = [];
 
     for ( ; i < size; ++i ) {
         views.push(DataBind.View.make(nodes[i]));
@@ -497,12 +506,40 @@ DataBind.setRoot = function(_doc) {
         }
     });
 
-    ['change', 'click', 'focus', 'blur'].forEach(function(type) {
-        root.addEventListener(type, DataBind.handleEvent);
+    console.log(DataBind.viewFactory);
+    DataBind.filter();
+    console.log(DataBind.viewFactory);
+};
+
+DataBind.filter = function() {
+    Object.keys(DataBind.viewFactory.signatures).forEach(function(signature) {
+        var list = DataBind.viewFactory.signatures[signature],
+            size = list.length,
+            i    = 0,
+            update = [];
+
+        for ( ; i < size; ++i ) {
+            if ( list[i].node.parentNode !== null ) {
+                update[update.length] = list[i];
+            }
+        }
+
+        DataBind.viewFactory.signatures[signature] = update;
     });
 
-    DataBind.rootNode = root;
+    var ids  = DataBind.viewFactory.ids,
+        size = ids.length,
+        i    = 1;
+
+    for ( ; i < size; ++i ) {
+        if ( ids[i].node.parentNode == null ) {
+            ids[i] = null;
+        }
+    }
+
+    DataBind.viewFactory.ids = ids;
 };
+
 
 DataBind.subscribers = {};
 DataBind.viewFactory = {signatures: {}, ids: []};
@@ -604,7 +641,7 @@ function DataBind_Model(name, model) {
         }
 
         this.__observe(name);
-    }
+    };
 
     if ( typeof model === 'function' ) {
         fn.prototype = model.prototype;
@@ -629,10 +666,8 @@ DataBind_Model.prototype.__observe = function(name) {
     this._updated = {};
 
     observes.forEach(function(prop) {
-        if ( this[prop] instanceof Array ) {
-            this[prop] = new DataBind.Observer.Array(name, prop, this[prop]);
-        } else if ( Object.prototype.toString.call(this[prop]) === '[object Object]' ) {
-            this[prop] = new DataBind.Observer.Hash(name, prop, this[prop]);
+        if ( this[prop] instanceof Array || Object.prototype.toString.call(this[prop]) === '[object Object]' ) {
+            this[prop] = new DataBind.Observer.Iterator(name, prop, this[prop]);
         } else if ( typeof this[prop] === 'function' ) {
             this[prop] = new DataBind.Observer.Computed(name, prop, this[prop], this);
         } else {
@@ -649,21 +684,11 @@ DataBind_Model.prototype.__observe = function(name) {
 };
 
 DataBind_Model.prototype.update = function(prop, data) {
-    var ret;
-
     if ( ! this.hasOwnProperty(prop) ) {
         return;
     }
 
-    if ( this._updated[prop] === false && this[prop] instanceof DataBind.Observer.Computed ) {
-        this._updated[prop] = true;
-
-        // Trigger property call
-        if ( void 0 !== (ret = this[prop].execute()) ) {
-            this[prop].update(ret);
-        }
-
-    } else if ( this._updated[prop] === false && this[prop] instanceof DataBind.Observer.Primitive ) {
+    if ( this._updated[prop] === false ) {
         this._updated[prop] = true;
         this[prop].update(data);
     }
@@ -672,10 +697,7 @@ DataBind_Model.prototype.update = function(prop, data) {
         if ( key !== prop && this._updated[key] === false && this[key] instanceof DataBind.Observer.Computed ) {
             // Chained peorperty call and set
             this._updated[key] = true;
-
-            if ( void 0 !== (ret = this[key].execute()) ) {
-                this[key].set(ret);
-            }
+            this[key].set();
         }
     }.bind(this));
 
@@ -731,37 +753,16 @@ DataBind_Observer.prototype.update = function(data) {
     });
 };
 
-
-
-DataBind.Observer.Array = DataBind_Observer_Array;
-
-DataBind_Observer_Array.prototype = new DataBind.Observer();
-
-function DataBind_Observer_Array() {
-    this.initialize.apply(this, arguments);
-
-    this.each(this.data);
-}
-
-DataBind_Observer_Array.prototype.each = function(list) {
-
+DataBind_Observer.prototype.chainView = function(data) {
     this.getChainViews(this.signature[0], this.signature[1]).forEach(function(view) {
-        var node = view.getNode();
-
-        while ( node.firstChild ) {
-            node.removeChild(node.firstChild);
+        if ( 'value' in view.node ) {
+            view.node.value = data;
+        } else {
+            view.node.innerHTML = data;
         }
-
-        list.forEach(function(value, index) {
-            var option = document.createElement('option');
-
-            option.value     = index;
-            option.innerText = value;
-
-            node.appendChild(option);
-        });
     });
 };
+
 
 
 DataBind.Observer.Computed = DataBind_Observer_Computed;
@@ -775,19 +776,70 @@ function DataBind_Observer_Computed() {
     this.initialize(arguments[0], arguments[1]);
 }
 
-DataBind_Observer_Computed.prototype.execute = function() {
-    return this.func.call(this.model);
+DataBind_Observer_Computed.prototype.set = function() {
+    var data = this.func.call(this.model);
+
+    if ( data !== void 0 ) {
+        this.data = data;
+
+        DataBind.publish(this.signature, data);
+        this.chainView(data);
+    }
+};
+
+DataBind_Observer_Computed.prototype.update = function() {
+    var data = this.func.call(this.model);
+
+    if ( data !== void 0 ) {
+        this.data = data;
+
+        this.chainView(data);
+    }
 };
 
 
+DataBind.Observer.Iterator = DataBind_Observer_Iterator;
 
-DataBind.Observer.Hash = DataBind_Observer_Hash;
+DataBind_Observer_Iterator.prototype = new DataBind.Observer();
 
-DataBind_Observer_Hash.prototype = new DataBind.Observer();
-
-function DataBind_Observer_Hash() {
+function DataBind_Observer_Iterator() {
     this.initialize.apply(this, arguments);
+
+    this.index = 0;
+    this.each(this.data);
 }
+
+DataBind_Observer_Iterator.prototype.get = function() {
+    return this.data[this.index];
+};
+
+DataBind_Observer_Iterator.prototype.set = function(index) {
+    this.index = index;
+
+    DataBind.publish(this.signature, index);
+};
+
+DataBind_Observer_Iterator.prototype.update = function(index) {
+    this.index = index;
+    this.chainView(index);
+};
+
+DataBind_Observer_Iterator.prototype.append = function() {
+    if ( arguments.length > 1 ) {
+        this.data[arguments[0]] = arguments[1];
+    } else {
+        this.data.push(arguments[0]);
+    }
+
+    this.each(this.data);
+};
+
+DataBind_Observer_Iterator.prototype.each = function(iterator) {
+
+    this.getChainViews(this.signature[0], this.signature[1]).forEach(function(view) {
+        view.addSubView(iterator);
+    });
+};
 
 
 DataBind.Observer.Primitive = DataBind_Observer_Primitive;
@@ -808,6 +860,7 @@ DataBind.View  = DataBind_View;
 function DataBind_View(node) {
     var eventName = node.getAttribute('data-bind-event');
 
+    this.template  = null;
     this.node      = node;
     this.eventName = eventName || 'change';
     this.eventOnly = !!eventName;
@@ -833,6 +886,10 @@ DataBind_View.prototype.initialize = function() {
         this.node.setAttribute('data-bind-event', this.eventName);
     }
 
+    if ( this.node.hasAttribute('data-bind-each') ) {
+        this.template = this.node.innerHTML;
+    }
+
     //this.node.addEventListener(this.eventName, this);
 }
 
@@ -850,6 +907,27 @@ DataBind_View.prototype.isEventHandler = function() {
 
 DataBind_View.prototype.handleEvent = function(evt) {
     DataBind.publish(this.signature, this.node.value || this.node.innerHTML);
+};
+
+DataBind_View.prototype.addSubView = function(iterator) {
+    var subview,
+        template;
+
+    if ( iterator instanceof Array ) {
+        template = Parser.make('{{loop iterator}}' + this.template + '{{/loop}}').compile();
+        subView = template.parse({iterator: iterator});
+        this.node.innerHTML = subView;
+        //this.node.insertAdjacentHTML('afterend', subView);
+    } else {
+        template = Parser.make(this.template).compile();
+        subView = template.parse({iterator: iterator});
+        this.node.innerHTML = subView;
+        //this.node.insertAdjacentHTML('afterend', subView);
+    }
+
+    console.log(subView);
+
+    DataBind.factory(this.node);
 };
 
 

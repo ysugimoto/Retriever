@@ -15,7 +15,7 @@ function DataBind_Model(name, model) {
         }
 
         this.__observe(name);
-    }
+    };
 
     if ( typeof model === 'function' ) {
         fn.prototype = model.prototype;
@@ -40,10 +40,8 @@ DataBind_Model.prototype.__observe = function(name) {
     this._updated = {};
 
     observes.forEach(function(prop) {
-        if ( this[prop] instanceof Array ) {
-            this[prop] = new DataBind.Observer.Array(name, prop, this[prop]);
-        } else if ( Object.prototype.toString.call(this[prop]) === '[object Object]' ) {
-            this[prop] = new DataBind.Observer.Hash(name, prop, this[prop]);
+        if ( this[prop] instanceof Array || Object.prototype.toString.call(this[prop]) === '[object Object]' ) {
+            this[prop] = new DataBind.Observer.Iterator(name, prop, this[prop]);
         } else if ( typeof this[prop] === 'function' ) {
             this[prop] = new DataBind.Observer.Computed(name, prop, this[prop], this);
         } else {
@@ -60,21 +58,11 @@ DataBind_Model.prototype.__observe = function(name) {
 };
 
 DataBind_Model.prototype.update = function(prop, data) {
-    var ret;
-
     if ( ! this.hasOwnProperty(prop) ) {
         return;
     }
 
-    if ( this._updated[prop] === false && this[prop] instanceof DataBind.Observer.Computed ) {
-        this._updated[prop] = true;
-
-        // Trigger property call
-        if ( void 0 !== (ret = this[prop].execute()) ) {
-            this[prop].update(ret);
-        }
-
-    } else if ( this._updated[prop] === false && this[prop] instanceof DataBind.Observer.Primitive ) {
+    if ( this._updated[prop] === false ) {
         this._updated[prop] = true;
         this[prop].update(data);
     }
@@ -83,10 +71,7 @@ DataBind_Model.prototype.update = function(prop, data) {
         if ( key !== prop && this._updated[key] === false && this[key] instanceof DataBind.Observer.Computed ) {
             // Chained peorperty call and set
             this._updated[key] = true;
-
-            if ( void 0 !== (ret = this[key].execute()) ) {
-                this[key].set(ret);
-            }
+            this[key].set();
         }
     }.bind(this));
 

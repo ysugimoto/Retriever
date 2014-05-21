@@ -45,5 +45,15 @@ DataBind_Observer.prototype.update = function(data) {
     });
 };
 
+DataBind_Observer.prototype.chainView = function(data) {
+    this.getChainViews(this.signature[0], this.signature[1]).forEach(function(view) {
+        if ( 'value' in view.node ) {
+            view.node.value = data;
+        } else {
+            view.node.innerHTML = data;
+        }
+    });
+};
+
 //= require_tree databind-class/observers
 

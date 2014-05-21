@@ -7,6 +7,7 @@ DataBind.View  = DataBind_View;
 function DataBind_View(node) {
     var eventName = node.getAttribute('data-bind-event');
 
+    this.template  = null;
     this.node      = node;
     this.eventName = eventName || 'change';
     this.eventOnly = !!eventName;
@@ -32,6 +33,10 @@ DataBind_View.prototype.initialize = function() {
         this.node.setAttribute('data-bind-event', this.eventName);
     }
 
+    if ( this.node.hasAttribute('data-bind-each') ) {
+        this.template = this.node.innerHTML;
+    }
+
     //this.node.addEventListener(this.eventName, this);
 }
 
@@ -49,4 +54,25 @@ DataBind_View.prototype.isEventHandler = function() {
 
 DataBind_View.prototype.handleEvent = function(evt) {
     DataBind.publish(this.signature, this.node.value || this.node.innerHTML);
+};
+
+DataBind_View.prototype.addSubView = function(iterator) {
+    var subview,
+        template;
+
+    if ( iterator instanceof Array ) {
+        template = Parser.make('{{loop iterator}}' + this.template + '{{/loop}}').compile();
+        subView = template.parse({iterator: iterator});
+        this.node.innerHTML = subView;
+        //this.node.insertAdjacentHTML('afterend', subView);
+    } else {
+        template = Parser.make(this.template).compile();
+        subView = template.parse({iterator: iterator});
+        this.node.innerHTML = subView;
+        //this.node.insertAdjacentHTML('afterend', subView);
+    }
+
+    console.log(subView);
+
+    DataBind.factory(this.node);
 };
