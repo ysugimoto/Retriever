@@ -13,8 +13,7 @@ function DataBind_Model(name, model) {
                 this[key] = model[key];
             }.bind(this));
         }
-
-        this.__observe(name);
+        this.name = name;
     };
 
     if ( typeof model === 'function' ) {
@@ -32,7 +31,7 @@ DataBind_Model.extend = function(name, model) {
     return new DataBind_Model(name, model || {});
 };
 
-DataBind_Model.prototype.__observe = function(name) {
+DataBind_Model.prototype.__observe = function() {
     DataBind();
 
     var observes = Object.keys(this).filter(function(k) { return k.indexOf('-') !== 0; });
@@ -40,21 +39,17 @@ DataBind_Model.prototype.__observe = function(name) {
     this._updated = {};
 
     observes.forEach(function(prop) {
-        if ( this[prop] instanceof Array || Object.prototype.toString.call(this[prop]) === '[object Object]' ) {
-            this[prop] = new DataBind.Observer.Iterator(name, prop, this[prop]);
-        } else if ( typeof this[prop] === 'function' ) {
-            this[prop] = new DataBind.Observer.Computed(name, prop, this[prop], this);
-        } else {
-            this[prop] = new DataBind.Observer.Primitive(name, prop, this[prop]);
+        if ( this[prop] instanceof DataBind.Observer ) {
+            this[prop].initialize(name, prop, this);
         }
 
         this._updated[prop] = false;
     }.bind(this));
 
-    // Attach inline
-    this.getName = function() {
-        return name;
-    }
+};
+
+DataBind_Model.prototype.getName = function() {
+    return this.name;
 };
 
 DataBind_Model.prototype.update = function(prop, data) {
@@ -64,7 +59,11 @@ DataBind_Model.prototype.update = function(prop, data) {
 
     if ( this._updated[prop] === false ) {
         this._updated[prop] = true;
-        this[prop].update(data);
+        if ( this[prop] instanceof DataBind.Observer ) {
+            this[prop].update(data);
+        } else if ( typeof this[prop] === 'function' ) {
+            this[prop]();
+        }
     }
 
     Object.keys(this).forEach(function(key) {

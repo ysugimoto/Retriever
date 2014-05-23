@@ -6,15 +6,14 @@ DataBind.Observer = DataBind_Observer;
 
 function DataBind_Observer() {}
 
-DataBind_Observer.prototype.initialize = function(modelName, propName, defaultData) {
-    this.data      = defaultData;
-    this.keep      = defaultData;
+DataBind_Observer.prototype.initialize = function(modelName, propName, model) {
     this.signature = [modelName, propName];
+    this.model     = model;
 }
 
 DataBind_Observer.prototype.getChainViews = function(model, prop) {
-    var modelViews  = DataBind.getView(model + '.' + prop),
-        globalViews = DataBind.getView('*.' + prop);
+    var modelViews  = DataBind.View.get(model + '.' + prop),
+        globalViews = DataBind.View.get('*.' + prop);
 
     return modelViews.concat(globalViews);
 };
@@ -36,13 +35,7 @@ DataBind_Observer.prototype.update = function(data) {
     this.data = data;
     this.keep = data;
 
-    this.getChainViews(sig[0], sig[1]).forEach(function(view) {
-        if ( 'value' in view.node ) {
-            view.node.value = data;
-        } else {
-            view.node.innerHTML = data;
-        }
-    });
+    this.chainView(data);
 };
 
 DataBind_Observer.prototype.chainView = function(data) {
@@ -51,6 +44,9 @@ DataBind_Observer.prototype.chainView = function(data) {
             view.node.value = data;
         } else {
             view.node.innerHTML = data;
+        }
+        if ( typeof view.expression === 'function' ) {
+            view.expression();
         }
     });
 };

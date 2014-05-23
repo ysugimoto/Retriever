@@ -6,8 +6,14 @@ DataBind.Observer.Primitive = DataBind_Observer_Primitive;
 
 DataBind_Observer_Primitive.prototype = new DataBind.Observer();
 
-function DataBind_Observer_Primitive() {
-    this.initialize.apply(this, arguments);
+function DataBind_Observer_Primitive(value) {
+    this.data = value
 
-    this.update(this.data);
 }
+
+DataBind_Observer_Primitive.prototype.initialize = function(modelName, propName, model) {
+    this.signature = [modelName, propName];
+    this.model     = model;
+
+    this.chainView(this.data);
+};

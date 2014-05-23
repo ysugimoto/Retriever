@@ -2,6 +2,7 @@
 
 <meta charset="UTF-8">
 <title>DataBind test</title>
+<script src="retriever.js"></script>
 
 </head>
 
@@ -10,31 +11,47 @@
 <div data-bind-type="loop">
     <input type="text" data-bind-name="input" />
     <div data-bind-name="foo" data-bind-event="click">bbb</div>
-    <button data-bind-name="action" data-bind-event="click">Action</button>
-    <select name="hoge" data-bind-name="list" data-bind-each="test">
-        <option data-bind-name="result" value="{{@index}}">{{@data}}</option>
-    </select>
+    <button data-bind-name="action" data-bind-event="click">Add</button>
+    <p data-bind-name="todos" data-bind-show="this.todos.length > 0">
+    <button data-bind-name="remove" data-bind-event="click">remove</button>
+    </p>
+    <select name="hoge" data-bind-name="list" data-bind-each="test"></select>
+    <div data-bind-name="todos" data-bind-each data-bind-template="this" data-bind-show="this.todos.length > 0">
+        <input type="radio" value="{{id}}">{{name}}
+    </div>
 </div>
 
-<script src="retriever.js"></script>
 <script>
 
+    var id = 3;
+
     var Model = DataBind.Model.extend('ViewModel', {
-        input: "input",
-        result: "value",
-        list: [1,2,3,4],
-        foo: function() {
+        input: DataBind.observe("input"),
+        result: DataBind.observe("value"),
+        list: DataBind.observe([1,2,3,4]),
+        todos: DataBind.observe([
+            {id: 1, name: 'foo'},
+            {id: 2, name: 'bar'},
+            {id: 3, name: 'baz'}
+        ]),
+        foo: DataBind.observe(function() {
             console.log('called');
             return this.input.get() + this.list.get();
-        },
+        }),
         action: function() {
-            this.input.set('hogehoge');
+            this.todos.push({id: 4, name: 'append'});
+        },
+        remove: function() {
+            this.todos.pop();
+            --id;
         }
+
     });
 
-    var model = new Model();
+    var ViewModel = new Model();
 
-    DataBind.subscribe(model);
+    DataBind.subscribe(ViewModel);
+
 
 
 </script>

@@ -1,3 +1,12 @@
+(function(head) {
+    var style = document.createElement('style');
+
+    style.type = 'text/css';
+    style.innerText = '@chatset "UTF-8";[data-bind-show] {display: none !important;}';
+
+    head.insertBefore(style, head.firstChild);
+})(document.head || document.getElementsByTagName('head')[0]);
+
 function DataBind() {
     if ( DataBind.rootNode === null ) {
         DataBind.setRoot();
@@ -19,79 +28,70 @@ DataBind.setRoot = function(_doc) {
 DataBind.factory = function(rootNode) {
     var nodes = rootNode.querySelectorAll('[data-bind-name]'),
         size  = nodes.length,
-        i     = 0,
-        views = [];
+        i     = 0;
 
     for ( ; i < size; ++i ) {
-        views.push(DataBind.View.make(nodes[i]));
+        DataBind.View.make(nodes[i]);
     }
 
-    views.forEach(function(view) {
-        if ( ! DataBind.exists(view.node) ) {
-            DataBind.addView(view.getSignature(), view);
-        }
-    });
-
-    console.log(DataBind.viewFactory);
-    DataBind.filter();
-    console.log(DataBind.viewFactory);
+    DataBind.View.filter();
 };
-
-DataBind.filter = function() {
-    Object.keys(DataBind.viewFactory.signatures).forEach(function(signature) {
-        var list = DataBind.viewFactory.signatures[signature],
-            size = list.length,
-            i    = 0,
-            update = [];
-
-        for ( ; i < size; ++i ) {
-            if ( list[i].node.parentNode !== null ) {
-                update[update.length] = list[i];
-            }
-        }
-
-        DataBind.viewFactory.signatures[signature] = update;
-    });
-
-    var ids  = DataBind.viewFactory.ids,
-        size = ids.length,
-        i    = 1;
-
-    for ( ; i < size; ++i ) {
-        if ( ids[i].node.parentNode == null ) {
-            ids[i] = null;
-        }
-    }
-
-    DataBind.viewFactory.ids = ids;
-};
-
 
 DataBind.subscribers = {};
-DataBind.viewFactory = {signatures: {}, ids: []};
-DataBind.viewID      = 0;
 DataBind.rootNode    = null;
-
 DataBind.pubsubID    = 0;
 
 DataBind.publish = function(signature, data) {
+    var modelCalled = false;
+
     DataBind.pubsubID++;
 
     Object.keys(this.subscribers).forEach(function(name) {
         if ( signature[0] === name || signature[0] === '*' ) {
             DataBind.subscribers[name].update(signature[1], data);
+            modelCalled = true;
         }
     });
+
+    if ( ! modelCalled ) {
+        DataBind.pubsubID = 1;
+    }
 };
 
 DataBind.subscribe = function(model) {
-    DataBind.subscribers[model.getName()] = model;
+    if ( DataBind.Model.prototype.__observe === model.__observe ) {
+        DataBind.subscribers[model.getName()] = model;
+        model.__observe();
+    }
 };
 
 DataBind.unsubscribe = function(name) {
     if ( name in DataBind.subscribers ) {
         delete DataBind.subscribers[name];
     }
+};
+
+DataBind.listen = (function() {
+    var listenEvents = [];
+
+    return function(eventName) {
+        if ( listenEvents.indexOf(eventName) !== -1 ) {
+            return;
+        }
+
+        document.addEventListener(eventName, DataBind.handleEvent);
+        listenEvents.push(eventName);
+    };
+})();
+
+DataBind.observe = function(bindData) {
+    if ( bindData instanceof Array || Object.prototype.toString.call(bindData) === '[object Object]' ) {
+        return new DataBind.Observer.Iterator(bindData);
+    } else if ( typeof bindData === 'function' ) {
+        return new DataBind.Observer.Computed(bindData);
+    }
+
+    return new DataBind.Observer.Primitive(bindData);
 };
 
 DataBind.handleEvent = function(evt) {
@@ -108,7 +108,7 @@ DataBind.handleEvent = function(evt) {
         type = node.getAttribute('data-bind-event');
         id   = node.__rtvid;
 
-        if ( id && type && type.indexOf(evt.type) !== -1 && null !== (view = DataBind.getViewByID(id)) ) {
+        if ( id && type && type.indexOf(evt.type) !== -1 && null !== (view = DataBind.View.getByID(id)) ) {
             break;
         }
         node = node.parentNode;
@@ -119,37 +119,5 @@ DataBind.handleEvent = function(evt) {
     }
 };
 
-DataBind.addView = function(signature, view) {
-    if ( ! (signature in DataBind.viewFactory.signatures) ) {
-        DataBind.viewFactory.signatures[signature] = [];
-    }
-    DataBind.viewFactory.signatures[signature].push(view);
-    DataBind.viewFactory.ids[view.id] = view;
-};
-
-DataBind.getView = function(signature) {
-    return DataBind.viewFactory.signatures[signature] || [];
-};
-
-DataBind.exists = function(node) {
-    var views = DataBind.viewFactory.ids,
-        size  = views.length,
-        i     = 1;
-
-    for ( ; i < size; ++i ) {
-        if ( ! views[i] ) {
-            continue;
-        }
-        if ( views[i].node === node ) {
-            return true;
-        }
-    }
-
-    return false;
-};
-
-DataBind.getViewByID = function(id) {
-    return DataBind.viewFactory.ids[id] || null;
-}
-
 //= require_tree databind-class
+
