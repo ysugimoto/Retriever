@@ -11,7 +11,7 @@
     <div id="todoapp">
         <header>
             <h1>Todos by Retriever.js</h1>
-            <input id="new-todo" type="text" placeholder="What need to be done?" data-bind-name="inputTitle" data-bind-event="keydown">
+            <input id="new-todo" type="text" placeholder="What need to be done?" data-bind-name="inputTitle" data-bind-event="keyenter" data-bind-handler="entered">
         </header>
 
         <section id="main" style="display:block">
@@ -44,6 +44,10 @@
 <script>
     var ViewModel = DataBind.Model.extend('ViewModel', function() {
         this.inputTitle = DataBind.observe('');
+        this.entered = function(value) {
+            this.todos.push(new TodoModel(value));
+            this.inputTitle.set('');
+        };
 
         this.todos = DataBind.observe([]);
         this.checkAll = function() {

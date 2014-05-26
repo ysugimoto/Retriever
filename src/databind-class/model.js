@@ -5,7 +5,7 @@ var DataBind = require('../DataBind');
 DataBind.Model = DataBind_Model;
 
 function DataBind_Model(name, model) {
-    var fn = function DataBindModel() {
+    var fn = function() {
         if ( typeof model === 'function' ) {
             model.apply(this, arguments);
         } else {
@@ -13,7 +13,6 @@ function DataBind_Model(name, model) {
                 this[key] = model[key];
             }.bind(this));
         }
-        this.name = name;
         this.__observe();
     };
 
@@ -73,7 +72,7 @@ DataBind_Model.prototype.update = function(prop, data) {
         if ( this[prop] instanceof DataBind.Observer ) {
             this[prop].update(data);
         } else if ( typeof this[prop] === 'function' ) {
-            this[prop]();
+            this[prop](data);
         }
     }
 

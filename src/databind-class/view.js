@@ -38,6 +38,10 @@ DataBind_View.extend = function(view) {
 
         if ( typeof view === 'function' ) {
             view.call(this);
+        } else if ( Object.prototype.toString.call(view) === '[object Object]' ) {
+            Object.keys(view).forEach(function(prop) {
+                this[prop] = view[prop];
+            }.bind(this));
         }
     };
 
@@ -110,7 +114,8 @@ DataBind_View.prototype.initialize = function(node, model) {
         this.signature.unshift('*');
     }
 
-    this.name = this.signature[this.signature.length - 1];
+    this.name    = this.signature[this.signature.length - 1];
+    this.handler = this.node.getAttribute('data-bind-handler');
 
     if ( ! model ) {
         // If model is not binded, create binding

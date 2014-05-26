@@ -28,6 +28,9 @@ DataBind_Observer.prototype.get = function() {
 };
 
 DataBind_Observer.prototype.set = function(data) {
+    if ( this.type && typeof data !== this.type ) {
+        throw new Error('TypeError: Observe value must be a ' + this.type);
+    }
     this.data = data;
 
     //DataBind.publish(this.signature, data, this.bindModel);
@@ -36,6 +39,9 @@ DataBind_Observer.prototype.set = function(data) {
 };
 
 DataBind_Observer.prototype.update = function(data) {
+    if ( this.type && typeof data !== this.type ) {
+        throw new Error('TypeError: Observe value must be a ' + this.type);
+    }
     this.data = data;
 };
 
