@@ -7,13 +7,14 @@ DataBind.Model = DataBind_Model;
 function DataBind_Model(name, model) {
     var fn = function DataBindModel() {
         if ( typeof model === 'function' ) {
-            model.call(this);
+            model.apply(this, arguments);
         } else {
             Object.keys(model).forEach(function(key) {
                 this[key] = model[key];
             }.bind(this));
         }
         this.name = name;
+        this.__observe();
     };
 
     if ( typeof model === 'function' ) {
@@ -34,17 +35,27 @@ DataBind_Model.extend = function(name, model) {
 DataBind_Model.prototype.__observe = function() {
     DataBind();
 
-    var observes = Object.keys(this).filter(function(k) { return k.indexOf('-') !== 0; });
+    var observes = Object.keys(this).filter(function(k) { return k.indexOf('-') !== 0; }),
+        that = this;
 
     this._updated = {};
 
     observes.forEach(function(prop) {
-        if ( this[prop] instanceof DataBind.Observer ) {
-            this[prop].initialize(name, prop, this);
+        if ( that[prop] instanceof DataBind.Observer ) {
+            that[prop].initialize(name, prop, that);
+            that[prop].attachViews(prop, that);
+            that[prop].chainView();
+        } else if ( typeof that[prop] === 'function' ) {
+            var modelViews  = DataBind.View.get(that.name + '.' + prop),
+                globalViews = DataBind.View.get('*.' + prop);
+
+            modelViews.concat(globalViews).forEach(function(view) {
+                view.bindModel = that;
+            });
         }
 
-        this._updated[prop] = false;
-    }.bind(this));
+        that._updated[prop] = false;
+    });
 
 };
 
@@ -70,7 +81,7 @@ DataBind_Model.prototype.update = function(prop, data) {
         if ( key !== prop && this._updated[key] === false && this[key] instanceof DataBind.Observer.Computed ) {
             // Chained peorperty call and set
             this._updated[key] = true;
-            this[key].set();
+            this[key].update();
         }
     }.bind(this));
 

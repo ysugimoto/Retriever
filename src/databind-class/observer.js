@@ -9,13 +9,18 @@ function DataBind_Observer() {}
 DataBind_Observer.prototype.initialize = function(modelName, propName, model) {
     this.signature = [modelName, propName];
     this.model     = model;
+    this.bindModel = null;
 }
 
-DataBind_Observer.prototype.getChainViews = function(model, prop) {
-    var modelViews  = DataBind.View.get(model + '.' + prop),
-        globalViews = DataBind.View.get('*.' + prop);
+DataBind_Observer.prototype.attachViews = function(name, model) {
+    var nodes = document.querySelectorAll('[data-bind-name="' + name + '"]'),
+        size  = nodes.length,
+        i     = 0;
 
-    return modelViews.concat(globalViews);
+    this.bindViews = [];
+    for ( ; i < size; ++i ) {
+        this.bindViews.push(DataBind.View.make(nodes[i], model));
+    }
 };
 
 DataBind_Observer.prototype.get = function() {
@@ -25,21 +30,19 @@ DataBind_Observer.prototype.get = function() {
 DataBind_Observer.prototype.set = function(data) {
     this.data = data;
 
-    DataBind.publish(this.signature, data);
-    this.update(data);
+    //DataBind.publish(this.signature, data, this.bindModel);
+    DataBind.pubsubID++;
+    this.chainView();
 };
 
 DataBind_Observer.prototype.update = function(data) {
-    var sig = this.signature;
-
     this.data = data;
-    this.keep = data;
-
-    this.chainView(data);
 };
 
-DataBind_Observer.prototype.chainView = function(data) {
-    this.getChainViews(this.signature[0], this.signature[1]).forEach(function(view) {
+DataBind_Observer.prototype.chainView = function() {
+    var data = this.get();
+
+    this.bindViews.forEach(function(view) {
         if ( 'value' in view.node ) {
             view.node.value = data;
         } else {
@@ -47,6 +50,9 @@ DataBind_Observer.prototype.chainView = function(data) {
         }
         if ( typeof view.expression === 'function' ) {
             view.expression();
+        }
+        if ( view.bindModel ) {
+            view.bindModel.update();
         }
     });
 };

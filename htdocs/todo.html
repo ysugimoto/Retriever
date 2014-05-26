@@ -1,0 +1,92 @@
+<!doctype html><html><head>
+
+<meta charset="UTF-8">
+<title>DataBind test</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<script src="retriever.js"></script>
+
+</head>
+
+<body>
+    <div id="todoapp">
+        <header>
+            <h1>Todos by Retriever.js</h1>
+            <input id="new-todo" type="text" placeholder="What need to be done?" data-bind-name="inputTitle" data-bind-event="keydown">
+        </header>
+
+        <section id="main" style="display:block">
+            <div data-bind-name="todos" data-bind-show="this.todos.length > 0">
+                <input id="toggle-all" type="checkbox" data-bind-name="checkAll" data-bind-event="click" />
+                <label for="toggle-all">Mark all as complete</label>
+            </div>
+            <ul id="todo-list" data-bind-name="todos" data-bind-each>
+                <li data-bind-name="toggleEditMode" data-bind-event="dblclick">
+                    <div class="view">
+                        <input class="toggle" type="checkbox" data-bind-name="checked" />
+                        <label data-bind-name="text">{{text}}</label>
+                        <a class="destroy"></a>
+                    </div>
+                    <input class="edit" type="text" data-bind-name="title" data-bind-name="keydown">
+                </li>
+            </ul>
+        </section>
+
+        <footer>
+            <div data-bind-name="todos" data-bind-show="this.todos.length > 0">
+                <div class="todo-count"><b data-bind-name="todoCount"></b> items left</div>
+                <a id="clear-completed" data-bind-name="clear" data-bind-event="click">
+                    Clear <span data-bind-name="countDone"></span>
+                </a>
+                <br style="clear:both" />
+            </div>
+        </footer>
+
+<script>
+    var ViewModel = DataBind.Model.extend('ViewModel', function() {
+        this.inputTitle = DataBind.observe('');
+
+        this.todos = DataBind.observe([]);
+        this.checkAll = function() {
+            this.todos.forEach(function(obj) {
+                obj.checked.set(true);
+            });
+        };
+        this.todoCount = DataBind.observe(function() {
+            var cnt = 0;
+            this.todos.forEach(function(obj) {
+                if ( obj.done === true ) {
+                    cnt++;
+                }
+            });
+
+            return cnt;
+        });
+        this.countDone = DataBind.observe(function() {
+            var cnt = 0;
+            this.todos.forEach(function(obj) {
+                if ( obj.done === false ) {
+                    cnt++;
+                }
+            });
+
+            return cnt;
+        });
+        this.clear = function() {
+            console.log('clear');
+        };
+    });
+    
+var TodoModel = DataBind.Model.extend('TodoModel', function(name) {
+    this.done    = false;
+    this.checked = DataBind.observe(false);
+    this.text    = name;
+});
+
+    var model = new ViewModel();
+
+
+
+
+</script>
+</body>
+</html>

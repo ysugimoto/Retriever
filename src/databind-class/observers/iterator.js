@@ -16,23 +16,25 @@ function DataBind_Observer_Iterator(data) {
 DataBind_Observer_Iterator.prototype.initialize = function(modelName, propName, model) {
     this.signature = [modelName, propName];
     this.model     = model;
-
-    this.each(this.data);
 }
 
 DataBind_Observer_Iterator.prototype.get = function() {
     return this.data[this.index];
 };
 
+DataBind_Observer_Iterator.prototype.getAll = function() {
+    return this.data;
+};
+
 DataBind_Observer_Iterator.prototype.set = function(index) {
     this.index = index;
 
-    DataBind.publish(this.signature, index);
+    DataBind.pubsubID++;
+    this.chainView();
 };
 
 DataBind_Observer_Iterator.prototype.update = function(index) {
     this.index = index;
-    this.chainView(index);
 };
 
 DataBind_Observer_Iterator.prototype.push = function() {
@@ -43,7 +45,7 @@ DataBind_Observer_Iterator.prototype.push = function() {
         this.data[arguments[0]] = arguments[1];
     }
 
-    this.each(this.data);
+    this.chainView();
 };
 
 DataBind_Observer_Iterator.prototype.unshift = function() {
@@ -54,7 +56,7 @@ DataBind_Observer_Iterator.prototype.unshift = function() {
         this.data[arguments[0]] = arguments[1];
     }
 
-    this.each(this.data);
+    this.chainView();
 };
 
 DataBind_Observer_Iterator.prototype.pop = function() {
@@ -65,7 +67,7 @@ DataBind_Observer_Iterator.prototype.pop = function() {
         delete this.data[arguments[0]];
     }
 
-    this.each(this.data);
+    this.chainView();
 };
 
 DataBind_Observer_Iterator.prototype.shift = function() {
@@ -76,17 +78,73 @@ DataBind_Observer_Iterator.prototype.shift = function() {
         delete this.data[arguments[0]];
     }
 
-    this.each(this.data);
+    this.chainView();
 };
 
-DataBind_Observer_Iterator.prototype.each = function(iterator) {
+DataBind_Observer_Iterator.prototype.forEach = function(callback) {
+    var data = this.data;
 
-    this.getChainViews(this.signature[0], this.signature[1]).forEach(function(view) {
+    if (data instanceof Array ) {
+        data.forEach(callback);
+        this.length = data.length;
+    } else {
+
+        Object.keys.forEach(function(key) {
+            callback.apply(data, [data[key], key]);
+        });
+    }
+
+    this.chainView();
+};
+
+DataBind_Observer_Iterator.prototype.map = function(callback) {
+    var data = this.data;
+
+    if (data instanceof Array ) {
+        this.data   = data.map(callback);
+        this.length = data.length;
+    } else {
+
+        Object.keys.foreach(function(key) {
+            data[key] = callback.apply(data, [data[key], key]);
+        });
+        this.data = data;
+    }
+
+    this.chainView();
+};
+
+DataBind_Observer_Iterator.prototype.filter = function(callback) {
+    var data = this.data;
+
+    if (data instanceof Array ) {
+        this.data   = data.filter(callback);
+        this.length = data.length;
+    } else {
+        Object.keys.foreach(function(key) {
+            if ( callback.apply(data, [data[key], key]) === false ) {
+                delete data[key];
+            }
+        });
+        this.data = data;
+    }
+
+    this.chainView();
+};
+
+DataBind_Observer_Iterator.prototype.chainView = function() {
+    var iterator = this.getAll();
+
+    this.bindViews.forEach(function(view) {
         if ( view.template !== null ) {
             view.addSubView(iterator);
         }
         if ( view.expression !== null ) {
             view.expression();
         }
+        if ( view.bindModel ) {
+            view.bindModel.update();
+        }
     });
-};
+}
+

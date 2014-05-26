@@ -25,13 +25,13 @@ DataBind.setRoot = function(_doc) {
     DataBind.rootNode = root;
 };
 
-DataBind.factory = function(rootNode) {
+DataBind.factory = function(rootNode, bindObject) {
     var nodes = rootNode.querySelectorAll('[data-bind-name]'),
         size  = nodes.length,
         i     = 0;
 
     for ( ; i < size; ++i ) {
-        DataBind.View.make(nodes[i]);
+        DataBind.View.make(nodes[i], bindObject);
     }
 
     DataBind.View.filter();
@@ -41,33 +41,9 @@ DataBind.subscribers = {};
 DataBind.rootNode    = null;
 DataBind.pubsubID    = 0;
 
-DataBind.publish = function(signature, data) {
-    var modelCalled = false;
-
-    DataBind.pubsubID++;
-
-    Object.keys(this.subscribers).forEach(function(name) {
-        if ( signature[0] === name || signature[0] === '*' ) {
-            DataBind.subscribers[name].update(signature[1], data);
-            modelCalled = true;
-        }
-    });
-
-    if ( ! modelCalled ) {
-        DataBind.pubsubID = 1;
-    }
-};
-
 DataBind.subscribe = function(model) {
     if ( DataBind.Model.prototype.__observe === model.__observe ) {
         DataBind.subscribers[model.getName()] = model;
-        model.__observe();
-    }
-};
-
-DataBind.unsubscribe = function(name) {
-    if ( name in DataBind.subscribers ) {
-        delete DataBind.subscribers[name];
     }
 };
 
@@ -105,17 +81,18 @@ DataBind.handleEvent = function(evt) {
     }
 
     while ( node && node !== document ) {
-        type = node.getAttribute('data-bind-event');
+        type = ',' + node.getAttribute('data-bind-event') + ',';
         id   = node.__rtvid;
 
-        if ( id && type && type.indexOf(evt.type) !== -1 && null !== (view = DataBind.View.getByID(id)) ) {
+        if ( id && type && type.indexOf(',' + evt.type + ',') !== -1 && null !== (view = DataBind.View.getByID(id)) ) {
             break;
         }
         node = node.parentNode;
     }
 
-    if ( view ) {
-        DataBind.publish(view.signature, node.value || node.innerHTML);
+    if ( view && view.bindModel ) {
+        DataBind.pubsubID++;
+        view.bindModel.update(view.name, node.value || node.innerHTML);
     }
 };
 
