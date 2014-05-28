@@ -19,7 +19,7 @@
                 <input id="toggle-all" type="checkbox" data-bind-name="checkAll" data-bind-event="change" />
                 <label for="toggle-all">Mark all as complete</label>
                 <ul id="todo-list" data-bind-name="todos" data-bind-each>
-                    <li data-bind-name="toggleEditMode" data-bind-event="dblclick">
+                    <li data-bind-name="state" data-bind-event="dblclick" data-bind-attr="class" data-event-hander="toggleEditMode">
                         <div class="view">
                             <input class="toggle" type="checkbox" data-bind-name="checked" data-bind-prop="checked"  />
                             <label data-bind-name="text">{{text}}</label>
@@ -30,7 +30,7 @@
                 </ul>
         </section>
 
-        <footer>
+        <footer style="display:block">
             <div data-bind-name="todos" data-bind-show="this.todos.length > 0">
                 <div class="todo-count"><b data-bind-name="todoCount"></b> items left</div>
                 <a id="clear-completed" data-bind-name="clear" data-bind-event="click">
@@ -50,16 +50,16 @@
 
         this.todos = DataBind.observe([]);
         this.checkAll = function() {
-            console.log('hogehoge');
             this.todos.forEach(function(obj) {
-                console.log(obj);
-                obj.checked.set(true);
+                var chk = obj.checked.get();
+
+                obj.checked.set(!chk);
             });
         };
         this.todoCount = DataBind.observe(function() {
             var cnt = 0;
             this.todos.forEach(function(obj) {
-                if ( obj.done === true ) {
+                if ( obj.done === false ) {
                     cnt++;
                 }
             });
@@ -69,7 +69,7 @@
         this.countDone = DataBind.observe(function() {
             var cnt = 0;
             this.todos.forEach(function(obj) {
-                if ( obj.done === false ) {
+                if ( obj.done === true ) {
                     cnt++;
                 }
             });
@@ -85,6 +85,16 @@ var TodoModel = DataBind.Model.extend('TodoModel', function(name) {
     this.done    = false;
     this.checked = DataBind.observe(false);
     this.text    = name;
+    this.state   = DataBind.observe('');
+    this.toggleEditMode = function() {
+        var chk = this.checked.get();
+
+        if ( chk === true ) {
+            this.state.set('edit');
+        } else {
+            this.sate.set('');
+        }
+    };
 });
 
     var model = new ViewModel();

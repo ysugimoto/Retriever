@@ -2,7 +2,7 @@
 var DataBind = require('../DataBind');
 //= end
 
-DataBind.Observer.Number = DataBind_Observer_Primitive;
+DataBind.Observer.Number = DataBind_Observer_Number;
 
 DataBind_Observer_Number.prototype = new DataBind.Observer();
 

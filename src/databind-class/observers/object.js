@@ -2,7 +2,7 @@
 var DataBind = require('../DataBind');
 //= end
 
-DataBind.Observer.Object = DataBind_Observer_Iterator;
+DataBind.Observer.Object = DataBind_Observer_Object;
 
 DataBind_Observer_Object.prototype = new DataBind.Observer();
 

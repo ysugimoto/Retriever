@@ -1034,7 +1034,7 @@ DataBind_Observer_Computed.prototype.update = function() {
 };
 
 
-DataBind.Observer.Number = DataBind_Observer_Primitive;
+DataBind.Observer.Number = DataBind_Observer_Number;
 
 DataBind_Observer_Number.prototype = new DataBind.Observer();
 
@@ -1050,7 +1050,7 @@ DataBind_Observer_Number.prototype.initialize = function(modelName, propName, mo
 };
 
 
-DataBind.Observer.Object = DataBind_Observer_Iterator;
+DataBind.Observer.Object = DataBind_Observer_Object;
 
 DataBind_Observer_Object.prototype = new DataBind.Observer();
 
@@ -1269,6 +1269,7 @@ DataBind_View.prototype.initialize = function(node, model) {
     this.parentView = null;
     this.node       = node;
     this.subViews   = {};
+    this.bindViews  = [];
     this.eventName  = eventName || 'change';
     this.eventOnly  = !!eventName;
     this.signature  = node.getAttribute('data-bind-name').split('.');
@@ -1300,7 +1301,7 @@ DataBind_View.prototype.initialize = function(node, model) {
     if ( this.node.hasAttribute('data-bind-attr') ) {
         this.valueMode = (function(attr) {
             return function(value) {
-                that.node.setAttribute(atrr, value);
+                that.node.setAttribute(attr, value);
             };
         })(this.node.getAttribute('data-bind-attr'));
     }
