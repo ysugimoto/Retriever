@@ -492,9 +492,9 @@ DataBind.setRoot = function(_doc) {
 
     DataBind.factory(root);
 
-    ['change', 'click', 'focus', 'blur'].forEach(function(type) {
-        root.addEventListener(type, DataBind.handleEvent);
-    });
+   // ['change', 'click', 'focus', 'blur'].forEach(function(type) {
+   //     root.addEventListener(type, DataBind.handleEvent);
+   // });
 
     DataBind.rootNode = root;
 };
@@ -502,10 +502,11 @@ DataBind.setRoot = function(_doc) {
 DataBind.factory = function(rootNode, bindObject) {
     var nodes = rootNode.querySelectorAll('[data-bind-name]'),
         size  = nodes.length,
-        i     = 0;
+        i     = 0,
+        view;
 
     for ( ; i < size; ++i ) {
-        DataBind.View.make(nodes[i], bindObject);
+        view = DataBind.View.make(nodes[i], bindObject);
     }
 
     DataBind.View.filter();
@@ -589,56 +590,148 @@ DataBind.handleEvent = function(evt) {
 
     if ( view && view.bindModel ) {
         DataBind.pubsubID++;
-        view.bindModel.update(view.name, node.value || node.innerHTML);
         if ( view.handler ) {
             view.bindModel.update(view.handler, node.value || node.innerHTML);
+        } else {
+            view.bindModel.update(view.name, node.value || node.innerHTML);
+        }
+
+    }
+};
+
+/**
+ * Interface constructor
+ */
+function EventInterface() {
+    this.callbacks = {};
+}
+
+/**
+ * Implement(extend) this class
+ * @param  Function fn
+ * @reutrn Function fn
+ */
+EventInterface.prototype.implement = function(fn) {
+   fn.prototype = new EventInterface();
+
+   return fn;
+};
+
+/**
+ * listen event
+ * @param String name : Event name
+ * @param Function callback : Event handler
+ */
+EventInterface.prototype.on = function(name, callback) {
+    if ( ! (name in this.callbacks) ) {
+        this.callbacks[name] = [];
+    }
+
+    this.callbacks[name].push([callback, 0]);
+};
+
+/**
+ * listen event once time 
+ * @param String name : Event name
+ * @param Function callback : Event handler
+ */
+EventInterface.prototype.once = function(name, callback) {
+    if ( ! (name in this.callbacks) ) {
+        this.callbacks[name] = [];
+    }
+
+    this.callbacks[name].push([callback, 1]);
+};
+
+/**
+ * unlisten event
+ * @param String name : Event name
+ * @param Function callback : Event handler
+ */
+EventInterface.prototype.off = function(name, callback) {
+    if ( ! (name in this.callbacks) ) {
+        return;
+    } else if ( ! callback ) {
+        delete this.callbacks[name];
+        return;
+    }
+
+    var size = this.callbacks[name].length,
+        i    = 0;
+
+    for ( ; i < size; ++i ) {
+        if ( this.callbacks[name][i][0] === callback ) {
+            this.callbacks[name].splice(i--, 1);
         }
     }
 };
+
+/**
+ * trigger event
+ * @param String name : Event name
+ * @param mixed data : Transport data
+ */
+EventInterface.prototype.trigger = function(name, data) {
+    if ( ! (name in this.callbacks) ) {
+        return;
+    }
+
+    var size = this.callbacks[name].length,
+        i    = 0;
+
+    for ( ; i < size; ++i ) {
+        this.callbacks[name][i][0]({data: data});
+        if ( this.callbacks[name][i][1] > 0 ) {
+            this.off(name, this.callbacks[i][0]);
+        }
+    }
+};
+
+
+DataBind.Event = new EventInterface();
 
 
 
 DataBind.Model = DataBind_Model;
 
 function DataBind_Model(name, model) {
-    var fn = function() {
-        if ( typeof model === 'function' ) {
-            model.apply(this, arguments);
-        } else {
-            Object.keys(model).forEach(function(key) {
-                this[key] = model[key];
-            }.bind(this));
-        }
-        this.__observe();
-    };
-
-    if ( typeof model === 'function' ) {
-        fn.prototype = model.prototype;
-    }
-
-    Object.keys(DataBind_Model.prototype).forEach(function(p) {
-        fn.prototype[p] = DataBind_Model.prototype[p];
-    });
-
-    return fn;
 }
 
 DataBind_Model.extend = function(name, model) {
-    return new DataBind_Model(name, model || {});
+    var mainModel = model || {},
+        fn = function() {
+            if ( typeof model === 'function' ) {
+                mainModel.apply(this, arguments);
+            } else {
+                Object.keys(mainModel).forEach(function(key) {
+                    this[key] = mainModel[key];
+                }.bind(this));
+            }
+            this.name = name;
+            this._observe();
+        };
+
+    fn.prototype = new DataBind_Model();
+
+    if ( typeof mainModel === 'function' ) {
+        Object.keys(mainModel).forEach(function(prop) {
+            fn.prototype[prop] = mainModel.prototype[prop];
+        });
+    }
+
+    return fn;
 };
 
-DataBind_Model.prototype.__observe = function() {
+DataBind_Model.prototype._observe = function(node) {
     DataBind();
 
     var observes = Object.keys(this).filter(function(k) { return k.indexOf('-') !== 0; }),
         that = this;
 
-    this._updated = {};
-
     observes.forEach(function(prop) {
         if ( that[prop] instanceof DataBind.Observer ) {
-            that[prop].initialize(name, prop, that);
-            that[prop].attachViews(prop, that);
+            that[prop].initialize(that.name, prop, that);
+            that[prop].attachViews(prop, that, node);
             that[prop].chainView();
         } else if ( typeof that[prop] === 'function' ) {
             var modelViews  = DataBind.View.get(that.name + '.' + prop),
@@ -648,8 +741,6 @@ DataBind_Model.prototype.__observe = function() {
                 view.bindModel = that;
             });
         }
-
-        that._updated[prop] = false;
     });
 
 };
@@ -663,29 +754,27 @@ DataBind_Model.prototype.update = function(prop, data) {
         return;
     }
 
-    if ( this._updated[prop] === false ) {
-        this._updated[prop] = true;
-        if ( this[prop] instanceof DataBind.Observer ) {
-            this[prop].update(data);
-        } else if ( typeof this[prop] === 'function' ) {
-            this[prop](data);
-        }
+    if ( this[prop] instanceof DataBind.Observer ) {
+        this[prop].trigger('update', data);
+    } else if ( typeof this[prop] === 'function' ) {
+        this[prop](data);
     }
 
+    this.bindUpdate(prop);
+
+    if ( --DataBind.pubsubID === 0 ) {
+        DataBind.Event.trigger('updatefinish');
+    }
+};
+
+DataBind_Model.prototype.bindUpdate = function(prop) {
     Object.keys(this).forEach(function(key) {
-        if ( key !== prop && this._updated[key] === false && this[key] instanceof DataBind.Observer.Computed ) {
-            // Chained peorperty call and set
-            this._updated[key] = true;
+        if ( key !== prop && this[key] instanceof DataBind.Observer.Computed ) {
+            // Chained property call and set
             this[key].update();
         }
     }.bind(this));
-
-    if ( --DataBind.pubsubID === 0 ) {
-        Object.keys(this._updated).forEach(function(key) {
-            this._updated[key] = false;
-        }.bind(this));
-    }
-};
+}
 
 
 
@@ -693,20 +782,41 @@ DataBind.Observer = DataBind_Observer;
 
 function DataBind_Observer() {}
 
+DataBind_Observer.prototype = new EventInterface();
+
 DataBind_Observer.prototype.initialize = function(modelName, propName, model) {
     this.signature = [modelName, propName];
     this.model     = model;
     this.bindModel = null;
+
+    var that = this;
+
+    this.__updated = false;
+    this.bindViews = [];
+
+    this.on('update', function(evt) {
+        if ( that.__updated === false ) {
+            that.__updated = true;
+            that.set(evt.data);
+        }
+    });
+
+    DataBind.Event.on('updatefinish', function() {
+        that.__updated = false;
+    });
 }
 
-DataBind_Observer.prototype.attachViews = function(name, model) {
-    var nodes = document.querySelectorAll('[data-bind-name="' + name + '"]'),
+DataBind_Observer.prototype.attachViews = function(name, model, root) {
+    var nodes = (root || document).querySelectorAll('[data-bind-name="' + name + '"]'),
         size  = nodes.length,
-        i     = 0;
+        i     = 0,
+        view;
 
     this.bindViews = [];
     for ( ; i < size; ++i ) {
-        this.bindViews.push(DataBind.View.make(nodes[i], model));
+        view = DataBind.View.make(nodes[i], model);
+        this.bindViews.push(view);
+        view.bindModel = model;
     }
 };
 
@@ -726,7 +836,7 @@ DataBind_Observer.prototype.set = function(data) {
 };
 
 DataBind_Observer.prototype.update = function(data) {
-    if ( this.type && typeof data !== this.type ) {
+    if ( data !== void 0 && this.type && typeof data !== this.type ) {
         throw new Error('TypeError: Observe value must be a ' + this.type);
     }
     this.data = data;
@@ -736,17 +846,18 @@ DataBind_Observer.prototype.chainView = function() {
     var data = this.get();
 
     this.bindViews.forEach(function(view) {
-        if ( 'value' in view.node ) {
-            view.node.value = data;
+        if ( typeof view.valueMode === 'function' ) {
+            view.valueMode(data);
         } else {
-            view.node.innerHTML = data;
+            view.node[view.valueMode] = data;
         }
+
         if ( typeof view.expression === 'function' ) {
-            view.expression();
+            view.expression(view.bindModel);
         }
-        if ( view.bindModel ) {
-            view.bindModel.update();
-        }
+        //if ( view.bindModel ) {
+        //    view.bindModel.update();
+        //}
     });
 };
 
@@ -764,6 +875,7 @@ function DataBind_Observer_Array(data) {
 }
 
 DataBind_Observer_Array.prototype.initialize = function(modelName, propName, model) {
+    DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
 }
 
@@ -851,16 +963,18 @@ DataBind_Observer_Array.prototype.filter = function(callback) {
 DataBind_Observer_Array.prototype.chainView = function() {
     var iterator = this.getAll();
 
-    this.bindViews.forEach(function(view) {
+    this.bindViews && this.bindViews.forEach(function(view) {
         if ( view.template !== null ) {
-            view.addSubView(iterator);
+            iterator.forEach(function(dat, index) {
+                view.addSubView(dat, index);
+            });
         }
         if ( view.expression !== null ) {
-            view.expression();
+            view.expression(view.bindModel);
         }
-        if ( view.bindModel ) {
-            view.bindModel.update();
-        }
+        //if ( view.bindModel ) {
+        //    view.bindModel.update();
+        //}
     });
 };
 
@@ -876,6 +990,7 @@ function DataBind_Observer_Boolean(value) {
 
 DataBind_Observer_Boolean.prototype.initialize = function(modelName, propName) {
     this.signature = [modelName, propName];
+    DataBind.Observer.prototype.initialize.call(this);
 };
 
 
@@ -885,10 +1000,10 @@ DataBind_Observer_Computed.prototype = new DataBind.Observer();
 
 function DataBind_Observer_Computed(fn) {
     this.func = fn;
-
 }
 
 DataBind_Observer_Computed.prototype.initialize = function(modelName, propName, model) {
+    DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
     this.model     = model;
 };
@@ -1059,9 +1174,9 @@ DataBind_Observer_Iterator.prototype.chainView = function() {
         if ( view.expression !== null ) {
             view.expression();
         }
-        if ( view.bindModel ) {
-            view.bindModel.update();
-        }
+        //if ( view.bindModel ) {
+        //    view.bindModel.update();
+        //}
     });
 }
 
@@ -1077,6 +1192,7 @@ function DataBind_Observer_Number(value) {
 }
 
 DataBind_Observer_Number.prototype.initialize = function(modelName, propName, model) {
+    DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
     this.model     = model;
 };
@@ -1092,6 +1208,7 @@ function DataBind_Observer_Object(data) {
 }
 
 DataBind_Observer_Object.prototype.initialize = function(modelName, propName) {
+    DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
 }
 
@@ -1168,14 +1285,16 @@ DataBind_Observer_Object.prototype.chainView = function() {
 
     this.bindViews.forEach(function(view) {
         if ( view.template !== null ) {
-            view.addSubView(iterator);
+            Object.keys(iterator).forEach(function(key) {
+                view.addSubView(iterator[key], key);
+            });
         }
         if ( view.expression !== null ) {
             view.expression();
         }
-        if ( view.bindModel ) {
-            view.bindModel.update();
-        }
+        //if ( view.bindModel ) {
+        //    view.bindModel.update();
+        //}
     });
 };
 
@@ -1186,6 +1305,7 @@ DataBind_Observer_Primitive.prototype = new DataBind.Observer();
 
 function DataBind_Observer_Primitive(value) {
     this.data = value;
+    DataBind.Observer.call(this);
 }
 
 DataBind_Observer_Primitive.prototype.initialize = function(modelName, propName, model) {
@@ -1204,6 +1324,7 @@ function DataBind_Observer_String(value) {
 }
 
 DataBind_Observer_String.prototype.initialize = function(modelName, propName) {
+    DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
 };
 
@@ -1223,7 +1344,7 @@ DataBind_View.factory = {
 DataBind_View.prototype = new DataBind.Observer();
 
 DataBind_View.make = function(node, model) {
-    var view = DataBind_View.getByID(node),
+    var view = DataBind_View.getByID(node.__rtvid || 0),
         tag,
         klass;
 
@@ -1242,7 +1363,6 @@ DataBind_View.make = function(node, model) {
 
 DataBind_View.extend = function(view) {
     var fn = function(node) {
-        DataBind_View.call(this, node);
 
         if ( typeof view === 'function' ) {
             view.call(this);
@@ -1309,21 +1429,44 @@ DataBind_View.prototype.initialize = function(node, model) {
 
     this.expression = null;
     this.template   = null;
+    this.parentView = null;
     this.node       = node;
+    this.subViews   = {};
     this.eventName  = eventName || 'change';
     this.eventOnly  = !!eventName;
     this.signature  = node.getAttribute('data-bind-name').split('.');
+    this.__updated  = false;
 
     this.id = this.node.__rtvid = ++DataBind_View.ID;
 
     DataBind.listen(this.eventName);
 
+    this.on('update', function(evt) {
+        if ( that.__updated === false ) {
+            that.__updated = true;
+            that.set(evt.data);
+        }
+    });
+
+    DataBind.Event.on('updatefinish', function() {
+        that.__updated = false;
+    });
+
     if ( this.signature.length === 1 ) {
         this.signature.unshift('*');
     }
 
-    this.name    = this.signature[this.signature.length - 1];
-    this.handler = this.node.getAttribute('data-bind-handler');
+    this.name      = this.signature[this.signature.length - 1];
+    this.handler   = this.node.getAttribute('data-bind-handler');
+    this.valueMode = this.node.getAttribute('data-bind-prop') || this.valueMode ||'innerHTML';
+
+    if ( this.node.hasAttribute('data-bind-attr') ) {
+        this.valueMode = (function(attr) {
+            return function(value) {
+                that.node.setAttribute(atrr, value);
+            };
+        })(this.node.getAttribute('data-bind-attr'));
+    }
 
     if ( ! model ) {
         // If model is not binded, create binding
@@ -1344,13 +1487,14 @@ DataBind_View.prototype.initialize = function(node, model) {
 
     if ( this.node.hasAttribute('data-bind-each') ) {
         this.template = Parser.make(this.node.innerHTML).compile();
+        this.node.innerHTML = '';
     }
 
     if ( this.node.hasAttribute('data-bind-show') ) {
         show = this.node.getAttribute('data-bind-show');
         expr = new Function('return ' + show + ';');
-        this.expression = (function(model, view) {
-            return function() {
+        this.expression = (function(view) {
+            return function(model) {
                 if ( model ) {
                     if ( expr.call(model) === true ) {
                         view.node.removeAttribute('data-bind-show');
@@ -1359,7 +1503,7 @@ DataBind_View.prototype.initialize = function(node, model) {
                 }
                 view.node.setAttribute('data-bind-show', show);
             }
-        })(this.bindModel, this);
+        })(this);
     }
 
     if ( ! DataBind_View.exists(node) ) {
@@ -1384,48 +1528,36 @@ DataBind_View.prototype.isEventHandler = function() {
     return this.eventOnly;
 };
 
-DataBind_View.prototype.addSubView = function(iterator) {
+DataBind_View.prototype.addSubView = function(model, index) {
     var subview,
         template,
         node,
         fragment = document.createDocumentFragment();
 
-    if ( iterator instanceof Array ) {
-        template = this.template;
-        iterator.forEach(function(value, index) {
-            node = document.createElement('div');
-            value.__INDEX__ = index;
-            value.__DATA__  = value;
-            subview = template.parse(value);
-            node.innerHTML = subview;
-            DataBind.factory(node, value);
-            while ( node.firstChild ) {
-                fragment.appendChild(node.firstChild);
-            }
-        });
-        while ( this.node.firstChild ) {
-            this.node.removeChild(this.node.firstChild);
-        }
-        this.node.appendChild(fragment);
-    } else {
-        template = this.template;
-        subview = template.parse(iterator);
-        node = document.createElement('div');
-        node.innerHTML = subview;
-        DataBind.factory(node, value);
-        while ( node.firstChild ) {
-            fragment.appendChild(node.firstChild);
-        }
-        while ( this.node.firstChild ) {
-            this.node.removeChild(this.node.firstChild);
-        }
-        this.node.appendChild(fragment);
+    // existing
+    if ( index in this.subViews ) {
+        return;
     }
+
+    node = document.createElement('div');
+    node.innerHTML = this.template.parse(model);
+    DataBind.factory(node, model);
+    if ( model instanceof DataBind.Model ) {
+        model._observe(node);
+    }
+    
+    while ( node.firstChild ) {
+        fragment.appendChild(node.firstChild);
+    }
+    this.subViews[index] = fragment;
+    this.node.appendChild(fragment);
 };
 
 
 
-var DataBind_View_Input = DataBind.View.extend();
+var DataBind_View_Input = DataBind.View.extend({
+    valueMode: 'value'
+});
 
 DataBind.View.Input = DataBind_View_Input;
 
@@ -1440,7 +1572,9 @@ DataBind_View_Input.prototype.handleEvent = function(evt) {
 };
 
 
-var DataBind_View_Select = DataBind.View.extend();
+var DataBind_View_Select = DataBind.View.extend({
+    valueMode: 'value'
+});
 
 DataBind.View.Select = DataBind_View_Select;
 
@@ -1471,7 +1605,9 @@ DataBind_View_Select.prototype.addSubView = function(iterator) {
 
 
 
-var DataBind_View_Textarea = DataBind.View.extend();
+var DataBind_View_Textarea = DataBind.View.extend({
+    valueMode: 'value'
+});
 
 DataBind.View.Textarea = DataBind_View_Textarea;
 

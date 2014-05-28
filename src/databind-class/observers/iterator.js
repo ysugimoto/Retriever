@@ -142,9 +142,9 @@ DataBind_Observer_Iterator.prototype.chainView = function() {
         if ( view.expression !== null ) {
             view.expression();
         }
-        if ( view.bindModel ) {
-            view.bindModel.update();
-        }
+        //if ( view.bindModel ) {
+        //    view.bindModel.update();
+        //}
     });
 }
 

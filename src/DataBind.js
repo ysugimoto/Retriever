@@ -18,9 +18,9 @@ DataBind.setRoot = function(_doc) {
 
     DataBind.factory(root);
 
-    ['change', 'click', 'focus', 'blur'].forEach(function(type) {
-        root.addEventListener(type, DataBind.handleEvent);
-    });
+   // ['change', 'click', 'focus', 'blur'].forEach(function(type) {
+   //     root.addEventListener(type, DataBind.handleEvent);
+   // });
 
     DataBind.rootNode = root;
 };
@@ -28,10 +28,11 @@ DataBind.setRoot = function(_doc) {
 DataBind.factory = function(rootNode, bindObject) {
     var nodes = rootNode.querySelectorAll('[data-bind-name]'),
         size  = nodes.length,
-        i     = 0;
+        i     = 0,
+        view;
 
     for ( ; i < size; ++i ) {
-        DataBind.View.make(nodes[i], bindObject);
+        view = DataBind.View.make(nodes[i], bindObject);
     }
 
     DataBind.View.filter();
@@ -115,12 +116,15 @@ DataBind.handleEvent = function(evt) {
 
     if ( view && view.bindModel ) {
         DataBind.pubsubID++;
-        view.bindModel.update(view.name, node.value || node.innerHTML);
         if ( view.handler ) {
             view.bindModel.update(view.handler, node.value || node.innerHTML);
+        } else {
+            view.bindModel.update(view.name, node.value || node.innerHTML);
         }
+
     }
 };
 
+//= require event.js
 //= require_tree databind-class
 

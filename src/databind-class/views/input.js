@@ -2,7 +2,9 @@
 var DataBind = require('../../DataBind');
 //= end
 
-var DataBind_View_Input = DataBind.View.extend();
+var DataBind_View_Input = DataBind.View.extend({
+    valueMode: 'value'
+});
 
 DataBind.View.Input = DataBind_View_Input;
 

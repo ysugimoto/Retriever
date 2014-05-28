@@ -2,7 +2,9 @@
 var DataBind = require('../../DataBind');
 //= end
 
-var DataBind_View_Select = DataBind.View.extend();
+var DataBind_View_Select = DataBind.View.extend({
+    valueMode: 'value'
+});
 
 DataBind.View.Select = DataBind_View_Select;
 

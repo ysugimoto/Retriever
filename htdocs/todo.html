@@ -16,19 +16,18 @@
 
         <section id="main" style="display:block">
             <div data-bind-name="todos" data-bind-show="this.todos.length > 0">
-                <input id="toggle-all" type="checkbox" data-bind-name="checkAll" data-bind-event="click" />
+                <input id="toggle-all" type="checkbox" data-bind-name="checkAll" data-bind-event="change" />
                 <label for="toggle-all">Mark all as complete</label>
-            </div>
-            <ul id="todo-list" data-bind-name="todos" data-bind-each>
-                <li data-bind-name="toggleEditMode" data-bind-event="dblclick">
-                    <div class="view">
-                        <input class="toggle" type="checkbox" data-bind-name="checked" />
-                        <label data-bind-name="text">{{text}}</label>
-                        <a class="destroy"></a>
-                    </div>
-                    <input class="edit" type="text" data-bind-name="title" data-bind-name="keydown">
-                </li>
-            </ul>
+                <ul id="todo-list" data-bind-name="todos" data-bind-each>
+                    <li data-bind-name="toggleEditMode" data-bind-event="dblclick">
+                        <div class="view">
+                            <input class="toggle" type="checkbox" data-bind-name="checked" data-bind-prop="checked"  />
+                            <label data-bind-name="text">{{text}}</label>
+                            <a class="destroy"></a>
+                        </div>
+                        <input class="edit" type="text" data-bind-name="title" data-bind-name="keydown">
+                    </li>
+                </ul>
         </section>
 
         <footer>
@@ -51,7 +50,9 @@
 
         this.todos = DataBind.observe([]);
         this.checkAll = function() {
+            console.log('hogehoge');
             this.todos.forEach(function(obj) {
+                console.log(obj);
                 obj.checked.set(true);
             });
         };

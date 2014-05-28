@@ -12,6 +12,7 @@ function DataBind_Observer_Object(data) {
 }
 
 DataBind_Observer_Object.prototype.initialize = function(modelName, propName) {
+    DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
 }
 
@@ -88,13 +89,15 @@ DataBind_Observer_Object.prototype.chainView = function() {
 
     this.bindViews.forEach(function(view) {
         if ( view.template !== null ) {
-            view.addSubView(iterator);
+            Object.keys(iterator).forEach(function(key) {
+                view.addSubView(iterator[key], key);
+            });
         }
         if ( view.expression !== null ) {
             view.expression();
         }
-        if ( view.bindModel ) {
-            view.bindModel.update();
-        }
+        //if ( view.bindModel ) {
+        //    view.bindModel.update();
+        //}
     });
 };

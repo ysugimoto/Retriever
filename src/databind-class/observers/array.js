@@ -14,6 +14,7 @@ function DataBind_Observer_Array(data) {
 }
 
 DataBind_Observer_Array.prototype.initialize = function(modelName, propName, model) {
+    DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
 }
 
@@ -101,15 +102,17 @@ DataBind_Observer_Array.prototype.filter = function(callback) {
 DataBind_Observer_Array.prototype.chainView = function() {
     var iterator = this.getAll();
 
-    this.bindViews.forEach(function(view) {
+    this.bindViews && this.bindViews.forEach(function(view) {
         if ( view.template !== null ) {
-            view.addSubView(iterator);
+            iterator.forEach(function(dat, index) {
+                view.addSubView(dat, index);
+            });
         }
         if ( view.expression !== null ) {
-            view.expression();
+            view.expression(view.bindModel);
         }
-        if ( view.bindModel ) {
-            view.bindModel.update();
-        }
+        //if ( view.bindModel ) {
+        //    view.bindModel.update();
+        //}
     });
 };

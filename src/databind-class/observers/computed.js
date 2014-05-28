@@ -8,10 +8,10 @@ DataBind_Observer_Computed.prototype = new DataBind.Observer();
 
 function DataBind_Observer_Computed(fn) {
     this.func = fn;
-
 }
 
 DataBind_Observer_Computed.prototype.initialize = function(modelName, propName, model) {
+    DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
     this.model     = model;
 };

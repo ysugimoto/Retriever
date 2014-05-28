@@ -8,6 +8,7 @@ DataBind_Observer_Primitive.prototype = new DataBind.Observer();
 
 function DataBind_Observer_Primitive(value) {
     this.data = value;
+    DataBind.Observer.call(this);
 }
 
 DataBind_Observer_Primitive.prototype.initialize = function(modelName, propName, model) {

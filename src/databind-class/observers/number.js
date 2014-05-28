@@ -12,6 +12,7 @@ function DataBind_Observer_Number(value) {
 }
 
 DataBind_Observer_Number.prototype.initialize = function(modelName, propName, model) {
+    DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
     this.model     = model;
 };
