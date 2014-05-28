@@ -20,11 +20,11 @@ DataBind_Observer.prototype.initialize = function(modelName, propName, model) {
     this.bindViews = [];
 
     this.on('update', function(evt) {
-        if ( that.__updated === false ) {
+       // if ( that.__updated === false ) {
             that.__updated = true;
-            that.set(evt.data);
-        }
-    });
+       //     //that.set(evt.data);
+       // }
+    });//
 
     DataBind.Event.on('updatefinish', function() {
         that.__updated = false;

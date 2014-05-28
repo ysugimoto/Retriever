@@ -117,9 +117,9 @@ DataBind.handleEvent = function(evt) {
     if ( view && view.bindModel ) {
         DataBind.pubsubID++;
         if ( view.handler ) {
-            view.bindModel.update(view.handler, node.value || node.innerHTML);
+            view.bindModel.update(view.handler, view.getValue());
         } else {
-            view.bindModel.update(view.name, node.value || node.innerHTML);
+            view.bindModel.update(view.name, view.getValue());
         }
 
     }

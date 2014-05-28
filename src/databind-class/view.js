@@ -88,6 +88,13 @@ DataBind_View.filter = function() {
     });
 };
 
+DataBind_View.prototype.getValue = function() {
+    if ( typeof this.valueMode === 'function' ) {
+        return this.node.getAttribute('data-bind-attr');
+    } else {
+        return this.node[this.valueMode];
+    }
+};
 
 DataBind_View.prototype.initialize = function(node, model) {
     var eventName = node.getAttribute('data-bind-event'),

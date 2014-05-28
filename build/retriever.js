@@ -591,9 +591,9 @@ DataBind.handleEvent = function(evt) {
     if ( view && view.bindModel ) {
         DataBind.pubsubID++;
         if ( view.handler ) {
-            view.bindModel.update(view.handler, node.value || node.innerHTML);
+            view.bindModel.update(view.handler, view.getValue());
         } else {
-            view.bindModel.update(view.name, node.value || node.innerHTML);
+            view.bindModel.update(view.name, view.getValue());
         }
 
     }
@@ -755,7 +755,8 @@ DataBind_Model.prototype.update = function(prop, data) {
     }
 
     if ( this[prop] instanceof DataBind.Observer ) {
-        this[prop].trigger('update', data);
+        this[prop].trigger('update');
+        this[prop].set(data);
     } else if ( typeof this[prop] === 'function' ) {
         this[prop](data);
     }
@@ -795,11 +796,11 @@ DataBind_Observer.prototype.initialize = function(modelName, propName, model) {
     this.bindViews = [];
 
     this.on('update', function(evt) {
-        if ( that.__updated === false ) {
+       // if ( that.__updated === false ) {
             that.__updated = true;
-            that.set(evt.data);
-        }
-    });
+       //     //that.set(evt.data);
+       // }
+    });//
 
     DataBind.Event.on('updatefinish', function() {
         that.__updated = false;
@@ -1254,6 +1255,13 @@ DataBind_View.filter = function() {
     });
 };
 
+DataBind_View.prototype.getValue = function() {
+    if ( typeof this.valueMode === 'function' ) {
+        return this.node.getAttribute('data-bind-attr');
+    } else {
+        return this.node[this.valueMode];
+    }
+};
 
 DataBind_View.prototype.initialize = function(node, model) {
     var eventName = node.getAttribute('data-bind-event'),

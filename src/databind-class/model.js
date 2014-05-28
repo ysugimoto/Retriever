@@ -65,7 +65,8 @@ DataBind_Model.prototype.update = function(prop, data) {
     }
 
     if ( this[prop] instanceof DataBind.Observer ) {
-        this[prop].trigger('update', data);
+        this[prop].trigger('update');
+        this[prop].set(data);
     } else if ( typeof this[prop] === 'function' ) {
         this[prop](data);
     }
