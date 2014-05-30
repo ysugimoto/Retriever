@@ -510,6 +510,7 @@ DataBind.factory = function(rootNode, bindObject) {
     }
 
     DataBind.View.filter();
+
 };
 
 DataBind.subscribers    = {};
@@ -1262,9 +1263,16 @@ DataBind_View.extend = function(view) {
 
 DataBind_View.search = function(node, prefix, name) {
     var selector = '[data-bind-name="' + prefix + '.' + name + '"], [data-bind-name="' + name + '"]',
-        nodes    = (node || document).querySelectorAll(selector);
+        nodes    = (node || document).querySelectorAll(selector),
+        size     = nodes.length,
+        i        = 0,
+        views    = [];
 
-    return Array.prototype.slice.call(nodes);
+    for ( ; i < size; ++i ) {
+        views.push(DataBind_View.make(nodes[i]));
+    }
+
+    return views;
 };
 
 DataBind_View.get = function(/* signature... */) {

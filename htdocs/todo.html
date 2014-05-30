@@ -21,7 +21,7 @@
                 <ul id="todo-list" data-bind-name="todos" data-bind-each>
                     <li data-bind-name="state" data-bind-event="dblclick" data-bind-attr="class" data-event-hander="toggleEditMode">
                         <div class="view">
-                            <input class="toggle" type="checkbox" data-bind-name="checked" data-bind-prop="checked" />
+                            <input class="toggle" type="checkbox" data-bind-name="checked" data-bind-handler="oncheck" />
                             <label data-bind-name="text">{{text}}</label>
                             <a class="destroy"></a>
                         </div>
@@ -96,10 +96,22 @@ var TodoModel = DataBind.Model.extend('TodoModel', function(name) {
     this.checked = DataBind.observe(false);
     this.text    = name;
     this.toggleEditMode = function(value, evt) {
+
         var chk = this.checked.get();
 
         console.log(evt, chk);
 
+    };
+    this.oncheck = function(value, evt) {
+        var node = evt.target;
+
+        if ( node.checked === true ) {
+            this.checked.set(true);
+            evt.target.parentNode.parentNode.classList.add('done');
+        } else {
+            this.checked.set(true);
+            evt.target.parentNode.parentNode.classList.add('done');
+        }
     };
     this.countDoneText = DataBind.observe(function(value, evt) {
         var cnt = ViewModel.countDoneTodos();

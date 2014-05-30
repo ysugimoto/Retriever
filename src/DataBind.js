@@ -36,6 +36,7 @@ DataBind.factory = function(rootNode, bindObject) {
     }
 
     DataBind.View.filter();
+
 };
 
 DataBind.subscribers    = {};
