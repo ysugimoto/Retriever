@@ -20,7 +20,12 @@ DataBind_Observer_Computed.prototype.get = function() {
     return this.func.call(this.model);
 };
 
-DataBind_Observer_Computed.prototype.set = function() {
+DataBind_Observer_Computed.prototype.call = function() {
+    this.set();
+};
+
+DataBind_Observer_Computed.prototype.set =
+DataBind_Observer_Computed.prototype.update = function() {
     var data = this.func.call(this.model);
 
     if ( data !== void 0 ) {
@@ -28,15 +33,22 @@ DataBind_Observer_Computed.prototype.set = function() {
 
         DataBind.pubsubID++;
         this.chainView(data);
+        DataBind.pubsubID--;
     }
 };
 
-DataBind_Observer_Computed.prototype.update = function() {
-    var data = this.func.call(this.model);
+DataBind_Observer_Computed.prototype.chainView = function() {
+    var data = this.get();
 
-    if ( data !== void 0 ) {
-        this.data = data;
+    this.bindViews.forEach(function(view) {
+        if ( typeof view.valueMode === 'function' ) {
+            view.valueMode(data);
+        } else {
+            view.node[view.valueMode] = data;
+        }
 
-        this.chainView(data);
-    }
+        if ( typeof view.expression === 'function' ) {
+            view.expression(view.bindModel);
+        }
+    });
 };

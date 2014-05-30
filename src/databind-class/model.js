@@ -4,7 +4,7 @@ var DataBind = require('../DataBind');
 
 DataBind.Model = DataBind_Model;
 
-function DataBind_Model(name, model) {
+function DataBind_Model() {
 }
 
 DataBind_Model.extend = function(name, model) {
@@ -42,38 +42,47 @@ DataBind_Model.prototype._observe = function(node) {
         if ( that[prop] instanceof DataBind.Observer ) {
             that[prop].initialize(that.name, prop, that);
             that[prop].attachViews(prop, that, node);
-            that[prop].chainView();
         } else if ( typeof that[prop] === 'function' ) {
-            var modelViews  = DataBind.View.get(that.name + '.' + prop),
-                globalViews = DataBind.View.get('*.' + prop);
-
-            modelViews.concat(globalViews).forEach(function(view) {
+            DataBind.View.search(node, that.name, prop).forEach(function(view) {
                 view.bindModel = that;
             });
         }
     });
 
+    observes.forEach(function(prop) {
+        that[prop].chainView && that[prop].chainView();
+    });
 };
 
 DataBind_Model.prototype.getName = function() {
     return this.name;
 };
 
-DataBind_Model.prototype.update = function(prop, data) {
+DataBind_Model.prototype.update = function(view, evt) {
+    var prop = view.handler || view.name,
+        value = view.getValue(),
+        that = this;
+
     if ( ! this.hasOwnProperty(prop) ) {
         return;
     }
 
     if ( this[prop] instanceof DataBind.Observer ) {
-        this[prop].trigger('update');
-        this[prop].set(data);
+        this[prop].set(value);
     } else if ( typeof this[prop] === 'function' ) {
-        this[prop](data);
+        this[prop](value, evt);
+        DataBind.View.get(this.name + '.' + prop, '*.' + prop).forEach(function(view) {
+            if ( view.bindModel === that ) {
+                if ( view.expression !== null ) {
+                    view.expression(that);
+                }
+            }
+        });
     }
 
     this.bindUpdate(prop);
 
-    if ( --DataBind.pubsubID === 0 ) {
+    if ( --DataBind.pubsubID <= 0 ) {
         DataBind.Event.trigger('updatefinish');
     }
 };
@@ -85,5 +94,5 @@ DataBind_Model.prototype.bindUpdate = function(prop) {
             this[key].update();
         }
     }.bind(this));
-}
+};
 

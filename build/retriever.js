@@ -590,12 +590,8 @@ DataBind.handleEvent = function(evt) {
 
     if ( view && view.bindModel ) {
         DataBind.pubsubID++;
-        if ( view.handler ) {
-            view.bindModel.update(view.handler, view.getValue());
-        } else {
-            view.bindModel.update(view.name, view.getValue());
-        }
-
+        view.bindModel.update(view, evt);
+        //view.bindModel.handleUpdate(view, evt);
     }
 };
 
@@ -694,7 +690,7 @@ DataBind.Event = new EventInterface();
 
 DataBind.Model = DataBind_Model;
 
-function DataBind_Model(name, model) {
+function DataBind_Model() {
 }
 
 DataBind_Model.extend = function(name, model) {
@@ -732,38 +728,47 @@ DataBind_Model.prototype._observe = function(node) {
         if ( that[prop] instanceof DataBind.Observer ) {
             that[prop].initialize(that.name, prop, that);
             that[prop].attachViews(prop, that, node);
-            that[prop].chainView();
         } else if ( typeof that[prop] === 'function' ) {
-            var modelViews  = DataBind.View.get(that.name + '.' + prop),
-                globalViews = DataBind.View.get('*.' + prop);
-
-            modelViews.concat(globalViews).forEach(function(view) {
+            DataBind.View.search(node, that.name, prop).forEach(function(view) {
                 view.bindModel = that;
             });
         }
     });
 
+    observes.forEach(function(prop) {
+        that[prop].chainView && that[prop].chainView();
+    });
 };
 
 DataBind_Model.prototype.getName = function() {
     return this.name;
 };
 
-DataBind_Model.prototype.update = function(prop, data) {
+DataBind_Model.prototype.update = function(view, evt) {
+    var prop = view.handler || view.name,
+        value = view.getValue(),
+        that = this;
+
     if ( ! this.hasOwnProperty(prop) ) {
         return;
     }
 
     if ( this[prop] instanceof DataBind.Observer ) {
-        this[prop].trigger('update');
-        this[prop].set(data);
+        this[prop].set(value);
     } else if ( typeof this[prop] === 'function' ) {
-        this[prop](data);
+        this[prop](value, evt);
+        DataBind.View.get(this.name + '.' + prop, '*.' + prop).forEach(function(view) {
+            if ( view.bindModel === that ) {
+                if ( view.expression !== null ) {
+                    view.expression(that);
+                }
+            }
+        });
     }
 
     this.bindUpdate(prop);
 
-    if ( --DataBind.pubsubID === 0 ) {
+    if ( --DataBind.pubsubID <= 0 ) {
         DataBind.Event.trigger('updatefinish');
     }
 };
@@ -775,7 +780,7 @@ DataBind_Model.prototype.bindUpdate = function(prop) {
             this[key].update();
         }
     }.bind(this));
-}
+};
 
 
 
@@ -790,22 +795,21 @@ DataBind_Observer.prototype.initialize = function(modelName, propName, model) {
     this.model     = model;
     this.bindModel = null;
 
+    EventInterface.call(this);
+
     var that = this;
 
     this.__updated = false;
     this.bindViews = [];
 
-    this.on('update', function(evt) {
-       // if ( that.__updated === false ) {
-            that.__updated = true;
-       //     //that.set(evt.data);
-       // }
-    });//
+    this.on('update', function() {
+        that.__updated = true;
+    });
 
     DataBind.Event.on('updatefinish', function() {
         that.__updated = false;
     });
-}
+};
 
 DataBind_Observer.prototype.attachViews = function(name, model, root) {
     var nodes = (root || document).querySelectorAll('[data-bind-name="' + name + '"]'),
@@ -826,14 +830,15 @@ DataBind_Observer.prototype.get = function() {
 };
 
 DataBind_Observer.prototype.set = function(data) {
-    if ( this.type && typeof data !== this.type ) {
+    if ( data !== void 0 && this.type && typeof data !== this.type ) {
         throw new Error('TypeError: Observe value must be a ' + this.type);
     }
+
+    DataBind.pubsubID++;
     this.data = data;
 
-    //DataBind.publish(this.signature, data, this.bindModel);
-    DataBind.pubsubID++;
     this.chainView();
+    DataBind.pubsubID--;
 };
 
 DataBind_Observer.prototype.update = function(data) {
@@ -844,6 +849,11 @@ DataBind_Observer.prototype.update = function(data) {
 };
 
 DataBind_Observer.prototype.chainView = function() {
+    if ( this.__updated === true && DataBind.pubsubID === 1 ) {
+        return;
+    }
+    this.__updated = true;
+
     var data = this.get();
 
     this.bindViews.forEach(function(view) {
@@ -856,9 +866,9 @@ DataBind_Observer.prototype.chainView = function() {
         if ( typeof view.expression === 'function' ) {
             view.expression(view.bindModel);
         }
-        //if ( view.bindModel ) {
-        //    view.bindModel.update();
-        //}
+        if ( view.bindModel ) {
+            view.bindModel.bindUpdate();
+        }
     });
 };
 
@@ -878,7 +888,8 @@ function DataBind_Observer_Array(data) {
 DataBind_Observer_Array.prototype.initialize = function(modelName, propName, model) {
     DataBind.Observer.prototype.initialize.call(this);
     this.signature = [modelName, propName];
-}
+    this.bindModel = model;
+};
 
 DataBind_Observer_Array.prototype.get = function() {
     return this.data[this.index];
@@ -891,8 +902,10 @@ DataBind_Observer_Array.prototype.getAll = function() {
 DataBind_Observer_Array.prototype.set = function(index) {
     this.index = index;
 
+    this.trigger('update');
     DataBind.pubsubID++;
     this.chainView();
+    DataBind.pubsubID--;
 };
 
 DataBind_Observer_Array.prototype.update = function(index) {
@@ -903,7 +916,11 @@ DataBind_Observer_Array.prototype.push = function() {
     Array.prototype.push.apply(this.data, arguments);
     this.length = this.data.length;
 
+    this.trigger('update');
+    DataBind.pubsubID++;
     this.chainView();
+    this.bindModel && this.bindModel.bindUpdate();
+    DataBind.pubsubID--;
     return this.length;
 };
 
@@ -911,7 +928,10 @@ DataBind_Observer_Array.prototype.unshift = function() {
     Array.prototype.unshift.apply(this.data, arguments);
     this.length = this.data.length;
 
+    this.trigger('update');
+    DataBind.pubsubID++;
     this.chainView();
+    DataBind.pubsubID--;
 };
 
 DataBind_Observer_Array.prototype.pop = function() {
@@ -938,7 +958,10 @@ DataBind_Observer_Array.prototype.forEach = function(callback) {
     data.forEach(callback);
     this.length = data.length;
 
-    this.chainView();
+    //this.trigger('update');
+    //DataBind.pubsubID++;
+    //this.chainView();
+    //DataBind.pubsubID--;
 };
 
 DataBind_Observer_Array.prototype.map = function(callback) {
@@ -962,6 +985,11 @@ DataBind_Observer_Array.prototype.filter = function(callback) {
 };
 
 DataBind_Observer_Array.prototype.chainView = function() {
+    if ( this.__updated === true && DataBind.pubsubID === 1) {
+        return;
+    }
+    this.__updated = true;
+
     var iterator = this.getAll();
 
     this.bindViews && this.bindViews.forEach(function(view) {
@@ -973,9 +1001,9 @@ DataBind_Observer_Array.prototype.chainView = function() {
         if ( view.expression !== null ) {
             view.expression(view.bindModel);
         }
-        //if ( view.bindModel ) {
-        //    view.bindModel.update();
-        //}
+        if ( view.bindModel ) {
+            view.bindModel.bindUpdate();
+        }
     });
 };
 
@@ -1013,7 +1041,12 @@ DataBind_Observer_Computed.prototype.get = function() {
     return this.func.call(this.model);
 };
 
-DataBind_Observer_Computed.prototype.set = function() {
+DataBind_Observer_Computed.prototype.call = function() {
+    this.set();
+};
+
+DataBind_Observer_Computed.prototype.set =
+DataBind_Observer_Computed.prototype.update = function() {
     var data = this.func.call(this.model);
 
     if ( data !== void 0 ) {
@@ -1021,17 +1054,24 @@ DataBind_Observer_Computed.prototype.set = function() {
 
         DataBind.pubsubID++;
         this.chainView(data);
+        DataBind.pubsubID--;
     }
 };
 
-DataBind_Observer_Computed.prototype.update = function() {
-    var data = this.func.call(this.model);
+DataBind_Observer_Computed.prototype.chainView = function() {
+    var data = this.get();
 
-    if ( data !== void 0 ) {
-        this.data = data;
+    this.bindViews.forEach(function(view) {
+        if ( typeof view.valueMode === 'function' ) {
+            view.valueMode(data);
+        } else {
+            view.node[view.valueMode] = data;
+        }
 
-        this.chainView(data);
-    }
+        if ( typeof view.expression === 'function' ) {
+            view.expression(view.bindModel);
+        }
+    });
 };
 
 
@@ -1076,7 +1116,7 @@ DataBind_Observer_Object.prototype.getAll = function() {
 DataBind_Observer_Object.prototype.set = function(key) {
     this.key = key;
 
-    DataBind.pubsubID++;
+    //DataBind.pubsubID++;
     this.chainView();
 };
 
@@ -1134,6 +1174,10 @@ DataBind_Observer_Object.prototype.filter = function(callback) {
 };
 
 DataBind_Observer_Object.prototype.chainView = function() {
+    if ( this.__updated === true ) {
+        return;
+    }
+    this.__updated = true;
     var iterator = this.getAll();
 
     this.bindViews.forEach(function(view) {
@@ -1145,9 +1189,9 @@ DataBind_Observer_Object.prototype.chainView = function() {
         if ( view.expression !== null ) {
             view.expression();
         }
-        //if ( view.bindModel ) {
-        //    view.bindModel.update();
-        //}
+        if ( view.bindModel ) {
+            view.bindModel.bindUpdate();
+        }
     });
 };
 
@@ -1216,8 +1260,23 @@ DataBind_View.extend = function(view) {
     return fn;
 };
 
-DataBind_View.get = function(signature) {
-    return DataBind_View.factory.signatures[signature] || [];
+DataBind_View.search = function(node, prefix, name) {
+    var selector = '[data-bind-name="' + prefix + '.' + name + '"], [data-bind-name="' + name + '"]',
+        nodes    = (node || document).querySelectorAll(selector);
+
+    return Array.prototype.slice.call(nodes);
+};
+
+DataBind_View.get = function(/* signature... */) {
+    var views = [],
+        i     = 0,
+        size  = arguments.length;
+
+    for ( ; i < size; ++i ) {
+        views = views.concat(DataBind_View.factory.signatures[arguments[i]] || []);
+    }
+
+    return views;
 };
 
 DataBind_View.getByID = function(id) {
@@ -1286,12 +1345,13 @@ DataBind_View.prototype.initialize = function(node, model) {
     this.id = this.node.__rtvid = ++DataBind_View.ID;
 
     DataBind.listen(this.eventName);
+    EventInterface.call(this);
 
     this.on('update', function(evt) {
-        if ( that.__updated === false ) {
+        //if ( that.__updated === false ) {
             that.__updated = true;
-            that.set(evt.data);
-        }
+            //that.set(evt.data);
+        //}
     });
 
     DataBind.Event.on('updatefinish', function() {
@@ -1348,7 +1408,7 @@ DataBind_View.prototype.initialize = function(node, model) {
                     }
                 }
                 view.node.setAttribute('data-bind-show', show);
-            }
+            };
         })(this);
     }
 
@@ -1360,7 +1420,7 @@ DataBind_View.prototype.initialize = function(node, model) {
         DataBind_View.factory.signatures[signature].push(this);
         DataBind_View.factory.ids[this.id] = this;
     }
-}
+};
 
 DataBind_View.prototype.getNode = function() {
     return this.node;

@@ -27,7 +27,7 @@ DataBind_Observer_Object.prototype.getAll = function() {
 DataBind_Observer_Object.prototype.set = function(key) {
     this.key = key;
 
-    DataBind.pubsubID++;
+    //DataBind.pubsubID++;
     this.chainView();
 };
 
@@ -85,6 +85,10 @@ DataBind_Observer_Object.prototype.filter = function(callback) {
 };
 
 DataBind_Observer_Object.prototype.chainView = function() {
+    if ( this.__updated === true ) {
+        return;
+    }
+    this.__updated = true;
     var iterator = this.getAll();
 
     this.bindViews.forEach(function(view) {
@@ -96,8 +100,8 @@ DataBind_Observer_Object.prototype.chainView = function() {
         if ( view.expression !== null ) {
             view.expression();
         }
-        //if ( view.bindModel ) {
-        //    view.bindModel.update();
-        //}
+        if ( view.bindModel ) {
+            view.bindModel.bindUpdate();
+        }
     });
 };

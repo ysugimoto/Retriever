@@ -21,7 +21,7 @@
                 <ul id="todo-list" data-bind-name="todos" data-bind-each>
                     <li data-bind-name="state" data-bind-event="dblclick" data-bind-attr="class" data-event-hander="toggleEditMode">
                         <div class="view">
-                            <input class="toggle" type="checkbox" data-bind-name="checked" data-bind-prop="checked"  />
+                            <input class="toggle" type="checkbox" data-bind-name="checked" data-bind-prop="checked" />
                             <label data-bind-name="text">{{text}}</label>
                             <a class="destroy"></a>
                         </div>
@@ -33,7 +33,7 @@
         <footer style="display:block">
             <div data-bind-name="todos" data-bind-show="this.todos.length > 0">
                 <div class="todo-count"><b data-bind-name="todoCount"></b> items left</div>
-                <a id="clear-completed" data-bind-name="clear" data-bind-event="click">
+                <a id="clear-completed">
                     Clear <span data-bind-name="countDone"></span>
                 </a>
                 <br style="clear:both" />
@@ -59,7 +59,7 @@
         this.todoCount = DataBind.observe(function() {
             var cnt = 0;
             this.todos.forEach(function(obj) {
-                if ( obj.done === false ) {
+                if ( obj.checked.get() === false ) {
                     cnt++;
                 }
             });
@@ -67,37 +67,55 @@
             return cnt;
         });
         this.countDone = DataBind.observe(function() {
+            var str = '';
+            var cnt = this.countDoneTodos();
+
+            str += cnt + ' completed item';
+            if ( cnt > 1 ) {
+                str += 's';
+            }
+            return str;
+
+        });
+        this.countDoneTodos = function() {
             var cnt = 0;
             this.todos.forEach(function(obj) {
-                if ( obj.done === true ) {
+                if ( obj.checked.get() === true ) {
                     cnt++;
                 }
             });
 
             return cnt;
-        });
+        };
         this.clear = function() {
             console.log('clear');
         };
     });
     
 var TodoModel = DataBind.Model.extend('TodoModel', function(name) {
-    this.done    = false;
     this.checked = DataBind.observe(false);
     this.text    = name;
-    this.state   = DataBind.observe('');
-    this.toggleEditMode = function() {
+    this.toggleEditMode = function(value, evt) {
         var chk = this.checked.get();
 
-        if ( chk === true ) {
-            this.state.set('edit');
-        } else {
-            this.sate.set('');
-        }
+        console.log(evt, chk);
+
     };
+    this.countDoneText = DataBind.observe(function(value, evt) {
+        var cnt = ViewModel.countDoneTodos();
+        var link = document.getElementById('clear-completed');
+
+        if ( cnt > 0 ) {
+            link.removeAttribute('data-bind-show');
+        } else {
+            link.setAttribute('data-bind-show', 1);
+        }
+        ViewModel.countDone.call();
+        //ViewModel.countDone.update();
+    });
 });
 
-    var model = new ViewModel();
+    var ViewModel = new ViewModel();
 
 
 

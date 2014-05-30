@@ -49,8 +49,23 @@ DataBind_View.extend = function(view) {
     return fn;
 };
 
-DataBind_View.get = function(signature) {
-    return DataBind_View.factory.signatures[signature] || [];
+DataBind_View.search = function(node, prefix, name) {
+    var selector = '[data-bind-name="' + prefix + '.' + name + '"], [data-bind-name="' + name + '"]',
+        nodes    = (node || document).querySelectorAll(selector);
+
+    return Array.prototype.slice.call(nodes);
+};
+
+DataBind_View.get = function(/* signature... */) {
+    var views = [],
+        i     = 0,
+        size  = arguments.length;
+
+    for ( ; i < size; ++i ) {
+        views = views.concat(DataBind_View.factory.signatures[arguments[i]] || []);
+    }
+
+    return views;
 };
 
 DataBind_View.getByID = function(id) {
@@ -119,12 +134,13 @@ DataBind_View.prototype.initialize = function(node, model) {
     this.id = this.node.__rtvid = ++DataBind_View.ID;
 
     DataBind.listen(this.eventName);
+    EventInterface.call(this);
 
     this.on('update', function(evt) {
-        if ( that.__updated === false ) {
+        //if ( that.__updated === false ) {
             that.__updated = true;
-            that.set(evt.data);
-        }
+            //that.set(evt.data);
+        //}
     });
 
     DataBind.Event.on('updatefinish', function() {
@@ -181,7 +197,7 @@ DataBind_View.prototype.initialize = function(node, model) {
                     }
                 }
                 view.node.setAttribute('data-bind-show', show);
-            }
+            };
         })(this);
     }
 
@@ -193,7 +209,7 @@ DataBind_View.prototype.initialize = function(node, model) {
         DataBind_View.factory.signatures[signature].push(this);
         DataBind_View.factory.ids[this.id] = this;
     }
-}
+};
 
 DataBind_View.prototype.getNode = function() {
     return this.node;
