@@ -199,13 +199,14 @@ Parser.prototype.compile = function() {
         index   = 0,
         nest    = 0,
         context,
-        match;
+        match,
+        v;
 
     while ( null !== (match = regex.exec(this.template)) ) {
         context = this.template.slice(index, match.index);
         if ( context && !/^[\r\n\s]+$/.test(context) ) {
             if ( nest > 0 ) {
-                compile[compile.length] = this.getPrefix() + this.quote(context.replace(/^[\n|\r|\s|\t]+|[\n|\r|\t|\s]+$/g, ''));
+                compile[compile.length] = this.getPrefix() + this.quote(context.replace(/^[\n|\r]+|[\n|\r|\t|\s]+$/g, ''));
             } else {
                 compile[compile.length] = this.getPrefix() + this.quote(context);
             }
@@ -264,7 +265,7 @@ Parser.prototype.compile = function() {
     this.compiledTemplate = new Function('obj', 'Helper', '_e', 'b', compile.join(''));
 
     return this;
-}
+};
 
 /**
  * Compile helper call sentence
@@ -351,10 +352,9 @@ Parser.prototype._compileReservedVars = function(sentence) {
  * @method _compileBuiltInControl
  * @private
  * @param {String} sentence built-in control senetence ( e.g if/else if/else/loop )
- * @param {Boolean} prefixVar variable prefix is needed
  * @return {String} Compile String
  */
-Parser.prototype._compileBuiltInControl = function(sentence, prefixVar) {
+Parser.prototype._compileBuiltInControl = function(sentence) {
     var match = /^(if|else\sif|else|for|loop)(?:\s(.+))?/.exec(sentence),
         n,
         c;
