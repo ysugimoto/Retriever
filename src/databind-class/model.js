@@ -17,8 +17,7 @@ DataBind_Model.extend = function(name, model) {
                     this[key] = mainModel[key];
                 }.bind(this));
             }
-            this.name = name;
-            this._observe();
+            this._name = name;
         };
 
     fn.prototype = new DataBind_Model();
@@ -29,10 +28,14 @@ DataBind_Model.extend = function(name, model) {
         });
     }
 
+    fn.prototype.getName = function() {
+        return name;
+    };
+
     return fn;
 };
 
-DataBind_Model.prototype._observe = function(node) {
+DataBind_Model.prototype.subscribe = function(node) {
     DataBind();
 
     var observes = Object.keys(this).filter(function(k) { return k.indexOf('-') !== 0; }),
@@ -70,7 +73,7 @@ DataBind_Model.prototype.update = function(view, evt) {
     if ( this[prop] instanceof DataBind.Observer ) {
         this[prop].set(value);
     } else if ( typeof this[prop] === 'function' ) {
-        this[prop](value, evt);
+        this[prop](view, evt);
         DataBind.View.get(this.name + '.' + prop, '*.' + prop).forEach(function(view) {
             if ( view.bindModel === that ) {
                 if ( view.expression !== null ) {

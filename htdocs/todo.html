@@ -8,52 +8,54 @@
 </head>
 
 <body>
-    <div id="todoapp">
-        <header>
-            <h1>Todos by Retriever.js</h1>
-            <input id="new-todo" type="text" placeholder="What need to be done?" data-bind-name="inputTitle" data-bind-event="keyenter" data-bind-handler="entered">
-        </header>
+<div id="todoapp">
+    <header>
+        <h1>Todos by Retriever.js</h1>
+        <input id="new-todo" type="text" placeholder="What need to be done?" data-bind-name="inputTitle" data-bind-event="keyenter" data-bind-handler="entered">
+    </header>
 
-        <section id="main" style="display:block">
-            <div data-bind-name="todos" data-bind-show="this.todos.length > 0">
-                <input id="toggle-all" type="checkbox" data-bind-name="checkAll" data-bind-event="change" />
-                <label for="toggle-all">Mark all as complete</label>
-                <ul id="todo-list" data-bind-name="todos" data-bind-each>
-                    <li data-bind-name="state" data-bind-event="dblclick" data-bind-attr="class" data-event-hander="toggleEditMode">
-                        <div class="view">
-                            <input class="toggle" type="checkbox" data-bind-name="checked" data-bind-handler="oncheck" />
-                            <label data-bind-name="text">{{text}}</label>
-                            <a class="destroy"></a>
-                        </div>
-                        <input class="edit" type="text" data-bind-name="title" data-bind-name="keydown">
-                    </li>
-                </ul>
-        </section>
+    <section id="main" style="display:block">
+        <div data-bind-name="todos" data-bind-show="this.todos.length > 0">
+            <input id="toggle-all" type="checkbox" data-bind-name="checkAll" data-bind-event="change" />
+            <label for="toggle-all">Mark all as complete</label>
+            <ul id="todo-list" data-bind-name="todos" data-bind-each>
+                <li data-bind-name="oncheck" data-bind-event="dblclick" data-bind-attr="data-done" data-bind-handler="toggleEditMode">
+                    <div class="view">
+                        <input class="toggle" type="checkbox" data-bind-name="checked" data-bind-prop="checked" />
+                        <label data-bind-name="text">{{text}}</label>
+                        <a class="destroy"></a>
+                    </div>
+                    <input class="edit" type="text" data-bind-name="text" data-bind-name="keyenter" data-bind-handler="toggleEditModeInput">
+                </li>
+            </ul>
+        </div>
+    </section>
 
-        <footer style="display:block">
-            <div data-bind-name="todos" data-bind-show="this.todos.length > 0">
-                <div class="todo-count"><b data-bind-name="todoCount"></b> items left</div>
-                <a id="clear-completed">
-                    Clear <span data-bind-name="countDone"></span>
-                </a>
-                <br style="clear:both" />
-            </div>
-        </footer>
+    <footer style="display:block">
+        <div data-bind-name="todos" data-bind-show="this.todos.length > 0">
+            <div class="todo-count"><b data-bind-name="todoCount"></b> items left</div>
+            <a id="clear-completed" data-bind-name="clear" data-bind-event="click">
+                Clear <span data-bind-name="countDone"></span>
+            </a>
+            <br style="clear:both" />
+        </div>
+    </footer>
+</div>
 
 <script>
     var ViewModel = DataBind.Model.extend('ViewModel', function() {
         this.inputTitle = DataBind.observe('');
-        this.entered = function(value) {
-            this.todos.push(new TodoModel(value));
+        this.entered = function(view) {
+            this.todos.push(new TodoModel(view.getValue()));
             this.inputTitle.set('');
         };
 
         this.todos = DataBind.observe([]);
-        this.checkAll = function() {
-            this.todos.forEach(function(obj) {
-                var chk = obj.checked.get();
+        this.checkAll = function(view) {
+            var chk = view.node.checked;
 
-                obj.checked.set(!chk);
+            this.todos.forEach(function(obj) {
+                obj.checked.set(chk);
             });
         };
         this.todoCount = DataBind.observe(function() {
@@ -88,31 +90,40 @@
             return cnt;
         };
         this.clear = function() {
-            console.log('clear');
+            this.todos.filter(function(todo) {
+                return todo.checked.get() === false;
+            });
+            document.getElementById('toggle-all').checked = false;
         };
     });
     
 var TodoModel = DataBind.Model.extend('TodoModel', function(name) {
     this.checked = DataBind.observe(false);
-    this.text    = name;
-    this.toggleEditMode = function(value, evt) {
+    this.text    = DataBind.observe(name);
+    this.toggleEditMode = function(view, evt) {
+        var node = view.node;
 
-        var chk = this.checked.get();
-
-        console.log(evt, chk);
-
-    };
-    this.oncheck = function(value, evt) {
-        var node = evt.target;
-
-        if ( node.checked === true ) {
-            this.checked.set(true);
-            evt.target.parentNode.parentNode.classList.add('done');
+        if ( ! node.classList.contains('editing') ) {
+            node.classList.add('editing');
         } else {
-            this.checked.set(true);
-            evt.target.parentNode.parentNode.classList.add('done');
+            node.classList.remove('editing');
         }
     };
+    this.toggleEditModeInput = function(view, evt) {
+        this.text.set(view.getValue());
+        view.node.parentNode.classList.toggle('editing');
+    };
+    this.oncheck = DataBind.observe(function() {
+        var attr = '';
+
+        if ( this.checked.get() === true ) {
+            //this.checked.set(true);
+            attr = 'done';
+        }
+        ViewModel.todoCount.call();
+        return attr;
+        
+    });
     this.countDoneText = DataBind.observe(function(value, evt) {
         var cnt = ViewModel.countDoneTodos();
         var link = document.getElementById('clear-completed');
@@ -128,6 +139,8 @@ var TodoModel = DataBind.Model.extend('TodoModel', function(name) {
 });
 
     var ViewModel = new ViewModel();
+
+    ViewModel.subscribe();
 
 
 

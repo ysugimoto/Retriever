@@ -230,10 +230,35 @@ DataBind_View.prototype.isEventHandler = function() {
     return this.eventOnly;
 };
 
+DataBind_View.prototype.removeSubView = function(index) {
+    var range;
+
+    if ( index in this.subViews ) {
+        range = this.subViews[index];
+        range.deleteContents();
+        range.detach();
+        delete this.subViews[index];
+    }
+};
+
+DataBind_View.prototype.updateSubViewIndex = function(updated) {
+    var that = this,
+        updateViews = {};
+
+    updated.forEach(function(oldIndex, newIndex) {
+        if ( that.subViews[oldIndex] ) {
+            updateViews[newIndex] = that.subViews[oldIndex];
+        }
+    });
+
+    this.subViews = updateViews;
+};
+
 DataBind_View.prototype.addSubView = function(model, index) {
     var subview,
         template,
         node,
+        range,
         fragment = document.createDocumentFragment();
 
     // existing
@@ -243,16 +268,27 @@ DataBind_View.prototype.addSubView = function(model, index) {
 
     node = document.createElement('div');
     node.innerHTML = this.template.parse(model);
+    node.normalize();
     DataBind.factory(node, model);
     if ( model instanceof DataBind.Model ) {
-        model._observe(node);
+        model.subscribe(node);
     }
     
     while ( node.firstChild ) {
         fragment.appendChild(node.firstChild);
     }
-    this.subViews[index] = fragment;
-    this.node.appendChild(fragment);
+    range = document.createRange();
+    if ( this.node.lastChild === null ) {
+        this.node.appendChild(fragment);
+        range.setStart(this.node.firstChild, 0);
+    } else {
+        range.setStart(this.node.lastChild, 0);
+        this.node.appendChild(fragment);
+    }
+    range.setEnd(this.node.lastChild, 0);
+
+    // stack of range
+    this.subViews[index] = range;
 };
 
 //= require_tree databind-class/views

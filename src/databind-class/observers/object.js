@@ -27,8 +27,10 @@ DataBind_Observer_Object.prototype.getAll = function() {
 DataBind_Observer_Object.prototype.set = function(key) {
     this.key = key;
 
-    //DataBind.pubsubID++;
+    this.trigger('update');
+    DataBind.pubsubID++;
     this.chainView();
+    DataBind.pubsubID--;
 };
 
 DataBind_Observer_Object.prototype.update = function(key) {
@@ -38,7 +40,11 @@ DataBind_Observer_Object.prototype.update = function(key) {
 DataBind_Observer_Object.prototype.add = function(key, value) {
     this.data[key] = value;
 
+    this.trigger('update');
+    DataBind.pubsubID++;
     this.chainView();
+    this.bindModel && this.bindModel.bindUpdate();
+    DataBind.pubsubID--;
 };
 
 DataBind_Observer_Object.prototype.remove = function(key) {
@@ -46,7 +52,10 @@ DataBind_Observer_Object.prototype.remove = function(key) {
         delete this.data[key];
     }
 
+    this.trigger('update');
+    DataBind.pubsubID++;
     this.chainView();
+    DataBind.pubsubID--;
 };
 
 DataBind_Observer_Object.prototype.each = function(callback) {
@@ -57,7 +66,10 @@ DataBind_Observer_Object.prototype.each = function(callback) {
     });
     this.data = data;
 
+    this.trigger('update');
+    DataBind.pubsubID++;
     this.chainView();
+    DataBind.pubsubID--;
 };
 
 DataBind_Observer_Object.prototype.map = function(callback) {
@@ -68,20 +80,48 @@ DataBind_Observer_Object.prototype.map = function(callback) {
     });
     this.data = data;
 
+    this.trigger('update');
+    DataBind.pubsubID++;
     this.chainView();
+    DataBind.pubsubID--;
 };
 
 DataBind_Observer_Object.prototype.filter = function(callback) {
-    var data = this.data;
+    var data = this.data,
+        removed = [];
 
     Object.keys.foreach(function(key) {
         if ( callback.apply(data, [data[key], key]) === false ) {
             delete data[key];
+            removed[removed.length] = key;
         }
     });
     this.data = data;
 
-    this.chainView();
+    this.trigger('update');
+    DataBind.pubsubID++;
+    this.removeView(removed);
+    DataBind.pubsubID--;
+};
+
+DataBind_Observer_Object.prototype.removeView = function(removedIndex) {
+    if ( this.__updated === true && DataBind.pubsubID === 1) {
+        return;
+    }
+    this.__updated = true;
+
+    this.bindViews && this.bindViews.forEach(function(view) {
+        removedIndex.forEach(function(index) {
+            view.removeSubView(index);
+        });
+
+        if ( view.expression !== null ) {
+            view.expression(view.bindModel);
+        }
+        if ( view.bindModel ) {
+            view.bindModel.bindUpdate();
+        }
+    });
 };
 
 DataBind_Observer_Object.prototype.chainView = function() {

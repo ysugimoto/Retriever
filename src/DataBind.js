@@ -62,7 +62,6 @@ DataBind.listen = (function() {
 
         if ( eventName in DataBind.customEventMap ) {
             eventName = DataBind.customEventMap[eventName];
-            console.log(eventName + ' mapped');
         }
         document.addEventListener(eventName, DataBind.handleEvent);
         listenEvents.push(eventName);
@@ -118,7 +117,6 @@ DataBind.handleEvent = function(evt) {
     if ( view && view.bindModel ) {
         DataBind.pubsubID++;
         view.bindModel.update(view, evt);
-        //view.bindModel.handleUpdate(view, evt);
     }
 };
 

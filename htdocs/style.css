@@ -62,7 +62,7 @@ body {
     margin: 0;
 }
 
-#todo-list li.done label {
+#todo-list li[data-done=done] label {
     color: #777777;
     text-decoration: line-through;
 }

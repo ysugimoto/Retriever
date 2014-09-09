@@ -52,30 +52,54 @@ DataBind_Observer_Array.prototype.push = function() {
     return this.length;
 };
 
-DataBind_Observer_Array.prototype.unshift = function() {
-    Array.prototype.unshift.apply(this.data, arguments);
+DataBind_Observer_Array.prototype.unshift = function(value) {
+    var update = [];
+
+    this.data.forEach(function(data, index) {
+        update[update.index] = index + 1;
+    });
+
+    this.data.unshift(value);
     this.length = this.data.length;
 
     this.trigger('update');
     DataBind.pubsubID++;
-    this.chainView();
+    this.removeView([], update);
     DataBind.pubsubID--;
+
+    return this;
 };
 
 DataBind_Observer_Array.prototype.pop = function() {
-    var pop = this.data.pop();
+    var pop = this.data.pop(),
+        removed = [this.data.length + 1],
+        update = [];
 
     this.length = this.data.length;
 
-    this.chainView();
+    this.trigger('update');
+    DataBind.pubsubID++;
+    this.removeView(removed, update);
+    DataBind.pubsubID--;
+
     return pop;
 };
 
 DataBind_Observer_Array.prototype.shift = function() {
-    var shift = this.data.shift();
+    var shift = this.data.shift(),
+        removed = [0],
+        update = [];
+
+    this.data.forEach(function(data, index) {
+        update[update.length] = index + 1;
+    });
 
     this.length = this.data.length;
-    this.chainView();
+
+    this.trigger('update');
+    DataBind.pubsubID++;
+    this.removeView(removed, update);
+    DataBind.pubsubID--;
 
     return shift;
 };
@@ -85,11 +109,6 @@ DataBind_Observer_Array.prototype.forEach = function(callback) {
 
     data.forEach(callback);
     this.length = data.length;
-
-    //this.trigger('update');
-    //DataBind.pubsubID++;
-    //this.chainView();
-    //DataBind.pubsubID--;
 };
 
 DataBind_Observer_Array.prototype.map = function(callback) {
@@ -103,13 +122,51 @@ DataBind_Observer_Array.prototype.map = function(callback) {
 };
 
 DataBind_Observer_Array.prototype.filter = function(callback) {
-    var data = this.data;
+    var data = this.data,
+        filtered = [],
+        removed  = [],
+        update   = [];
 
-    this.data   = data.filter(callback);
-    this.length = data.length;
+    data.forEach(function(dat, index) {
+        if ( callback(dat, index) === false ) {
+            removed[removed.length] = index;
+        } else {
+            update[update.length]     = index;
+            filtered[filtered.length] = dat;
+        }
+    });
 
-    this.chainView();
-    return this.data;
+    this.data   = filtered;
+    this.length = filtered.length;
+
+    this.trigger('update');
+    DataBind.pubsubID++;
+    this.removeView(removed, update);
+    DataBind.pubsubID--;
+
+    return this;
+};
+
+DataBind_Observer_Array.prototype.removeView = function(removedIndex, updateIndex) {
+    if ( this.__updated === true && DataBind.pubsubID === 1) {
+        return;
+    }
+    this.__updated = true;
+
+    this.bindViews && this.bindViews.forEach(function(view) {
+        removedIndex.forEach(function(index) {
+            view.removeSubView(index);
+        });
+
+        view.updateSubViewIndex(updateIndex);
+
+        if ( view.expression !== null ) {
+            view.expression(view.bindModel);
+        }
+        if ( view.bindModel ) {
+            view.bindModel.bindUpdate();
+        }
+    });
 };
 
 DataBind_Observer_Array.prototype.chainView = function() {
