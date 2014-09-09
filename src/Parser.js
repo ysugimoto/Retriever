@@ -206,7 +206,7 @@ Parser.prototype.compile = function() {
         context = this.template.slice(index, match.index);
         if ( context && !/^[\r\n\s]+$/.test(context) ) {
             if ( nest > 0 ) {
-                compile[compile.length] = this.getPrefix() + this.quote(context.replace(/^[\n|\r]+|[\n|\r|\t|\s]+$/g, ''));
+                compile[compile.length] = this.getPrefix() + this.quote(context.replace(/^[\n|\r]+|[\n|\r]+$/g, ''));
             } else {
                 compile[compile.length] = this.getPrefix() + this.quote(context);
             }
